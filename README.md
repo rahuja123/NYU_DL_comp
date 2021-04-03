@@ -1,5 +1,15 @@
 # DL competition Spring 2021
 
+## GCP Details(Follow this line-by-line):
+  - ssh <NYU_NetID>@gw.hpc.nyu.edu
+  - ssh <NYU_NetID>@greene.hpc.nyu.edu
+  - ssh log-4
+  - srun --partition=interactive --account dl18 --pty /bin/bash
+  To see the files:
+  - df -h
+
+
+
 ## Competition Details:
   The dataset, of color images of size 96×96, that has the following structure:
   - 512,000 unlabeled images
