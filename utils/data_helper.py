@@ -20,7 +20,6 @@ class CustomDataset(torch.utils.data.Dataset):
             split: The split you want to used, it should be one of train, val or unlabeled.
             transform: the transform you want to applied to the images.
         """
-
         self.split = split
         self.transform = transform
 
