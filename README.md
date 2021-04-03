@@ -4,8 +4,8 @@
   - ssh <NYU_NetID>@gw.hpc.nyu.edu
   - ssh <NYU_NetID>@greene.hpc.nyu.edu
   - ssh log-4
-  - srun --partition=interactive --account dl18 --pty /bin/bash \
-  To see the files:
+  - srun --partition=interactive --account dl18 --pty /bin/bash 
+ To see the files:
   - df -h
 
 
