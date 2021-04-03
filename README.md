@@ -2,7 +2,7 @@
 
 [GCP document](https://newclasses.nyu.edu/access/content/attachment/36f46182-ed32-448e-9e54-af9c2f38d6a1/Announcements/088ccc6d-feac-4955-b775-f3e31f5ba631/gcp_1.0.pdf)
 
-[Competition PDF] (https://newclasses.nyu.edu/access/content/attachment/36f46182-ed32-448e-9e54-af9c2f38d6a1/Announcements/f2962e19-8b28-409d-a6ad-450f8a842d02/Deep_Learning_2021_1.0.pdf)
+[Competition PDF](https://newclasses.nyu.edu/access/content/attachment/36f46182-ed32-448e-9e54-af9c2f38d6a1/Announcements/f2962e19-8b28-409d-a6ad-450f8a842d02/Deep_Learning_2021_1.0.pdf)
 
 ## GCP Details(Follow this line-by-line):
   - ssh <NYU_NetID>@gw.hpc.nyu.edu
