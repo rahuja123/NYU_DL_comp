@@ -2,9 +2,9 @@
 
 ## Competition Details:
   The dataset, of color images of size 96×96, that has the following structure:
-  • 512,000 unlabeled images,
-  • 25,600 labeled training images (32 examples each for 800 classes),
-  • 25,600 labeled validation images (32 examples each for 800 classes).
+  - 512,000 unlabeled images
+  - 25,600 labeled training images (32 examples each for 800 classes)
+  - 25,600 labeled validation images (32 examples each for 800 classes).
   
 ## Schedule:
   • 04/11 23:55: the first leaderboard submission deadline
