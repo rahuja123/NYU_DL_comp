@@ -8,7 +8,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+from torchvision import  transforms
 
+
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
 
 # The dataset class for unlabeled data.
 
@@ -22,7 +26,10 @@ class CustomDataset(torch.utils.data.Dataset):
         """
         self.split = split
         self.transform = transform
-
+        self.basicTransform  =  transforms.Compose([
+            transforms.ToTensor(),
+            normalize,
+        ])
         self.image_dir = os.path.join(root, split)
         label_path = os.path.join(root, f"{split}_label_tensor.pt")
 
@@ -39,6 +46,9 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         with open(os.path.join(self.image_dir, f"{idx}.png"), 'rb') as f:
             img = Image.open(f).convert('RGB')
-
-        return self.transform(img), self.labels[idx]
+            if self.split == 'unlabeled':
+                label = self.basicTransform(img)
+            else:
+                label = self.labels[idx]
+        return self.transform(img), label
     
