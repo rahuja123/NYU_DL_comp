@@ -28,7 +28,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.basicTransform  =  transforms.Compose([
             transforms.ToTensor(),
-            normalize,
+           # normalize,
         ])
         self.image_dir = os.path.join(root, split)
         label_path = os.path.join(root, f"{split}_label_tensor.pt")
