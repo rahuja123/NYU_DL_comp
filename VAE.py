@@ -9,7 +9,7 @@ class conv_BN(nn.Module):
         self.conv1 = nn.Sequential(
           nn.Conv2d(in_chanel,out_chanel,3,padding = 1),
           nn.BatchNorm2d(out_chanel), 
-          nn.LeakyReLU(),
+          nn.ReLU(),
         )
     def forward(self,input):
         output = self.conv1(input)
@@ -84,7 +84,7 @@ class Decoder(nn.Module):
         out = self.convt3(out)
         out = self.convt4(out)
         out = self.convt5(out)
-        F.hardtanh(out, min_val=-0., max_val=1., inplace=False)
+        out = F.hardtanh(out, min_val=0.0, max_val=1., inplace=False)
         return out
 
 class VAE(nn.Module):
