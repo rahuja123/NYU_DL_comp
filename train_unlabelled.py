@@ -91,7 +91,7 @@ for epoch in range(epochs):
     print(mean_train_loss)
     if epoch%10 ==0 :
         os.makedirs(args.checkpoint_dir, exist_ok=True)
-        torch.save(net.state_dict(), os.path.join(args.checkpoint_dir, 'unlabel{}.pth'.format(epoch + 1)))
+        torch.save(model.state_dict(), os.path.join(args.checkpoint_dir, 'unlabel{}.pth'.format(epoch + 1)))
         #torch.save(model.state_dict(),save_path + 'unlabel{}.pth'.format(epoch + 1))
 print('Finished Training')
 
