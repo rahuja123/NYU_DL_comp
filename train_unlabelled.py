@@ -9,7 +9,7 @@ from tqdm.notebook import tqdm
 import torch.optim as optim
 from utils.data_helper import CustomDataset
 import VAE
-from PIL import Image # PIL is a library to process images
+#from PIL import Image # PIL is a library to process images
 from tqdm.notebook import tqdm
 
 
@@ -31,7 +31,7 @@ train_transform = transforms.Compose([
         #transforms.RandomHorizontalFlip(),
         #transforms.functional.to_grayscale()
         transforms.ColorJitter(hue=.1, saturation=.1, contrast=.1),
-        transforms.RandomRotation(20, resample=Image.BILINEAR),
+        transforms.RandomRotation(20),
         transforms.GaussianBlur(7, sigma=(0.1, 1.0)),
         transforms.ToTensor(),  # convert PIL to Pytorch Tensor
         #normalize,
