@@ -66,6 +66,7 @@ train_mse_loss_record = []
 
 for epoch in range(epochs):
     total_train_loss = 0.0
+    count = 0;
     for batch in tqdm(trainloader, leave=False):
         x_in = batch[0].to(device=device)
         x_label = batch[1].to(device=device)
@@ -76,15 +77,19 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
         total_train_loss += loss.item()
+        count+=1
+        if count %10==0:
+            print(total_train_loss/10)
+            total_train_loss=0.0
 
     mean_train_loss = total_train_loss / len(trainset)
 
     train_mse_loss_record.append(mean_train_loss)
-    
+    print(mean_train_loss)
     if epoch%10 ==0 :
         os.makedirs(args.checkpoint_dir, exist_ok=True)
-        torch.save(net.state_dict(), os.path.join(args.checkpoint_dir, "net_demo.pth"))
-
+        torch.save(net.state_dict(), os.path.join(args.checkpoint_dir, 'unlabel{}.pth'.format(epoch + 1)))
+        #torch.save(model.state_dict(),save_path + 'unlabel{}.pth'.format(epoch + 1))
 print('Finished Training')
 
 print(f"Saved checkpoint to {os.path.join(args.checkpoint_dir, 'net_demo.pth')}")
