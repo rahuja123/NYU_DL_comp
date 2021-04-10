@@ -9,6 +9,9 @@ from tqdm.notebook import tqdm
 import torch.optim as optim
 from utils.data_helper import CustomDataset
 import VAE
+from PIL import Image # PIL is a library to process images
+from tqdm.notebook import tqdm
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--checkpoint_dir', default='checkpoint/', type=str)
