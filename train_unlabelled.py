@@ -5,17 +5,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms, models
-from tqdm.notebook import tqdm
+#from tqdm.notebook import tqdm
 import torch.optim as optim
 from utils.data_helper import CustomDataset
 import VAE
-#from PIL import Image # PIL is a library to process images
-from tqdm.notebook import tqdm
-
+from PIL import Image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--checkpoint_dir', default='checkpoint/', type=str)
 args = parser.parse_args()
+os.makedirs(args.checkpoint_dir, exist_ok=True)
 
 # These numbers are mean and std values for channels of natural images. 
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -31,13 +30,13 @@ train_transform = transforms.Compose([
         #transforms.RandomHorizontalFlip(),
         #transforms.functional.to_grayscale()
         transforms.ColorJitter(hue=.1, saturation=.1, contrast=.1),
-        transforms.RandomRotation(20),
+        transforms.RandomRotation(20, resample=Image.BILINEAR),
         transforms.GaussianBlur(7, sigma=(0.1, 1.0)),
         transforms.ToTensor(),  # convert PIL to Pytorch Tensor
         #normalize,
     ])
 
-trainset = CustomDataset(root='/dataset', split="unlabelled", transform=train_transform)
+trainset = CustomDataset(root='./dataset', split="unlabeled", transform=train_transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=256, shuffle=True, num_workers=4)
 
 model = VAE.VAE(1600)
@@ -70,7 +69,7 @@ train_mse_loss_record = []
 for epoch in range(epochs):
     total_train_loss = 0.0
     count = 0;
-    for batch in tqdm(trainloader, leave=False):
+    for i, batch in enumerate(trainloader):
         x_in = batch[0].to(device=device)
         x_label = batch[1].to(device=device)
         outputs, mu, logvar = model(x_in)
@@ -82,6 +81,7 @@ for epoch in range(epochs):
         total_train_loss += loss.item()
         count+=1
         if count %10==0:
+            count = 0;
             print(total_train_loss/10)
             total_train_loss=0.0
 
@@ -90,8 +90,8 @@ for epoch in range(epochs):
     train_mse_loss_record.append(mean_train_loss)
     print(mean_train_loss)
     if epoch%10 ==0 :
-        os.makedirs(args.checkpoint_dir, exist_ok=True)
-        torch.save(model.state_dict(), os.path.join(args.checkpoint_dir, 'unlabel{}.pth'.format(epoch + 1)))
+        #os.makedirs(args.checkpoint_dir, exist_ok=True)
+        torch.save(net.state_dict(), os.path.join(args.checkpoint_dir, 'unlabel{}.pth'.format(epoch + 1)))
         #torch.save(model.state_dict(),save_path + 'unlabel{}.pth'.format(epoch + 1))
 print('Finished Training')
 
