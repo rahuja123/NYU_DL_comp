@@ -27,9 +27,9 @@ train_transform = transforms.Compose([
         #normalize,
     ])
 
-trainset = CustomDataset(root='./dataset', split="unlabeled", transform=train_transform)
+trainset = CustomDataset(root='/dataset', split="unlabeled", transform=train_transform)
 trainset, validset = torch.utils.data.random_split(trainset, [100000, len(trainset)-100000], generator=torch.Generator().manual_seed(42))
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=16, shuffle=True, num_workers=4)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=256, shuffle=True, num_workers=4)
 
 epochs = 100
 lr = 1e-2
