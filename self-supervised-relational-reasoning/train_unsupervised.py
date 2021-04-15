@@ -27,7 +27,7 @@ parser.add_argument("--id", default="", help="Additional string appended when sa
 parser.add_argument("--checkpoint", default="", help="location of a checkpoint file, used to resume training")
 parser.add_argument("--num_workers", default=8, type=int, help="Number of torchvision workers used to load data (default: 8)")
 parser.add_argument("--gpu", default="3", type=str, help="GPU id in case of multiple GPUs")
-parser.add_argument('--dataset_dir', default='../NYU_DL_comp/dataset', help='provide dataset relative path')
+parser.add_argument('--dataset_dir', default='./dataset', help='provide dataset relative path')
 args = parser.parse_args()
 
 if(args.id!=""):
@@ -104,7 +104,8 @@ if(args.method=="relationnet"):
     print("[INFO][RelationNet] TOT augmentations (K): " + str(args.K))
     print("[INFO][RelationNet] Aggregation function: " + str(args.aggregation))
     train_transform = manager.get_train_transforms(args.method, args.dataset)
-    train_loader, _ = manager.get_train_loader(dataset=args.dataset,
+    train_loader, _ = manager.get_train_loader(data_root= args.dataset_dir,
+                                            dataset=args.dataset,
                                             data_type="multi",
                                             data_size=args.data_size,
                                             train_transform=train_transform,
@@ -118,8 +119,9 @@ elif(args.method=="standard"):
         train_transform = manager.get_train_transforms("finetune", args.dataset)
     else:
         train_transform = manager.get_train_transforms("standard", args.dataset)
-    test_loader = manager.get_test_loader(args.dataset, data_size=args.data_size, num_workers=args.num_workers)
-    train_loader, _ = manager.get_train_loader(dataset=args.dataset,
+    test_loader = manager.get_test_loader(args.dataset_dir,args.dataset, data_size=args.data_size, num_workers=args.num_workers)
+    train_loader, _ = manager.get_train_loader(data_root= args.dataset_dir,
+                                            dataset=args.dataset,
                                             data_type="single",
                                             data_size=args.data_size,
                                             train_transform=train_transform,
@@ -132,7 +134,8 @@ elif(args.method=="rotationnet"):
     train_transform = manager.get_train_transforms(args.method, args.dataset)
     if(args.dataset=="stl10"): data_type="unsupervised"
     else: data_type="single"
-    train_loader, _ = manager.get_train_loader(dataset=args.dataset,
+    train_loader, _ = manager.get_train_loader(data_root= args.dataset_dir,
+                                            dataset=args.dataset,
                                             data_type=data_type,
                                             data_size=args.data_size,
                                             train_transform=train_transform,
@@ -154,7 +157,8 @@ elif(args.method=="deepinfomax"):
     train_transform = manager.get_train_transforms(args.method, args.dataset)
     if(args.dataset=="stl10"): data_type="unsupervised"
     else: data_type="single"
-    train_loader, _ = manager.get_train_loader(dataset=args.dataset,
+    train_loader, _ = manager.get_train_loader(data_root= args.dataset_dir,
+                                            dataset=args.dataset,
                                             data_type=data_type,
                                             data_size=args.data_size,
                                             train_transform=train_transform,
@@ -165,7 +169,8 @@ elif(args.method=="simclr"):
     from methods.simclr import Model
     model = Model(feature_extractor)
     train_transform = manager.get_train_transforms(args.method, args.dataset)
-    train_loader, _ = manager.get_train_loader(dataset=args.dataset,
+    train_loader, _ = manager.get_train_loader(data_root= args.dataset_dir,
+                                            dataset=args.dataset,
                                             data_type="multi",
                                             data_size=args.data_size,
                                             train_transform=train_transform,
@@ -179,7 +184,8 @@ elif(args.method=="deepcluster"):
     model = Model(feature_extractor, batch_size=args.data_size, num_clusters=num_classes*10, train_transform=train_transform)
     if(args.dataset=="stl10"): data_type="unsupervised"
     else: data_type="single"
-    _, train_set = manager.get_train_loader(dataset=args.dataset,
+    _, train_set = manager.get_train_loader(data_root= args.dataset_dir,
+                                            dataset=args.dataset,
                                          data_type=data_type,
                                          data_size=args.data_size,
                                          train_transform=train_transform,

@@ -363,7 +363,7 @@ class DataManager():
 
         return train_transform
 
-    def get_train_loader(self, dataset, data_type, data_size, train_transform, repeat_augmentations, num_workers=8, drop_last=False, root=''):
+    def get_train_loader(self, data_root,  dataset, data_type, data_size, train_transform, repeat_augmentations, num_workers=8, drop_last=False, root=''):
         """Returns the training loader for each dataset/method.
            If a new method or dataset is added, this method should by modified
            accordingly.
@@ -394,7 +394,7 @@ class DataManager():
             elif(dataset=="stl10"):
                 train_set = MultiSTL10(repeat_augmentations, root="data", split="unlabeled", transform=train_transform, download=True)
             elif(dataset=="nyu"):
-                train_set = MultiNYU(root="../NYU_DL_comp/dataset", split="unlabeled", transform=train_transform, repeat_augmentations=repeat_augmentations)
+                train_set = MultiNYU(root=data_root, split="unlabeled", transform=train_transform, repeat_augmentations=repeat_augmentations)
             elif(dataset=="cifar100"):
                 train_set = MultiCIFAR100(repeat_augmentations, root="data", train=True, transform=train_transform, download=True)
             elif(dataset=="tiny"):
@@ -408,7 +408,7 @@ class DataManager():
             elif(dataset=="stl10"):
                 train_set = dset.STL10(root="data", split="train", transform=train_transform, download=True)
             elif(dataset=="nyu"):
-                train_set = CustomDataset(root='../NYU_DL_comp/dataset', split="train", transform=train_transform)
+                train_set = CustomDataset(root=data_root, split="train", transform=train_transform)
             elif(dataset=="supercifar100"):
                 train_set = SuperCIFAR100("data", train=True, transform=train_transform, download=True)
             elif(dataset=="cifar100"):
@@ -428,7 +428,7 @@ class DataManager():
         return train_loader, train_set
 
 
-    def get_test_loader(self, dataset, data_size, num_workers=8):
+    def get_test_loader(self,data_root, dataset, data_size, num_workers=8):
         self._check(dataset)
         if(dataset=="cifar10"):
             normalize = transforms.Normalize(mean=[0.491, 0.482, 0.447], std=[0.247, 0.243, 0.262])
@@ -441,7 +441,7 @@ class DataManager():
         elif(dataset=="nyu"):
             normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             test_transform = transforms.Compose([transforms.ToTensor(), normalize])
-            test_set= CustomDataset(root='../NYU_DL_comp/dataset', split="val", transform=test_transform)
+            test_set= CustomDataset(root=data_root, split="val", transform=test_transform)
             # test_set = dset.STL10("data", split="test", transform=test_transform, download=True)
         elif(dataset=="supercifar100"):
             normalize = transforms.Normalize(mean=[0.507, 0.487, 0.441], std=[0.267, 0.256, 0.276])
