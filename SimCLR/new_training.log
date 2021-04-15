@@ -1,0 +1,21 @@
+2021-04-13 08:32:25,455 Start SimCLR training for 200 epochs.
+2021-04-13 08:32:25,456 Training with gpu: False.
+2021-04-13 08:34:44,164 Start SimCLR training for 200 epochs.
+2021-04-13 08:34:44,165 Training with gpu: False.
+2021-04-13 08:56:42,158 Start SimCLR training for 200 epochs.
+2021-04-13 08:56:42,159 Training with gpu: False.
+2021-04-13 09:18:43,759 Start SimCLR training for 200 epochs.
+2021-04-13 09:18:43,760 Training with gpu: False.
+2021-04-13 09:49:23,008 Epoch: 0	Loss: 3.753577947616577	Top1 accuracy: 27.34375
+2021-04-13 09:49:25,633 Model checkpoint and metadata has been saved at runs/Apr13_09-18-19_rahulahuja-U2099.
+2021-04-13 10:22:10,590 Epoch: 1	Loss: 3.0322396755218506	Top1 accuracy: 44.140625
+2021-04-13 10:56:41,105 Epoch: 2	Loss: 2.35249662399292	Top1 accuracy: 50.5859375
+2021-04-13 11:33:34,364 Epoch: 3	Loss: 2.1840033531188965	Top1 accuracy: 65.625
+2021-04-13 12:08:20,168 Epoch: 4	Loss: 1.982379674911499	Top1 accuracy: 62.3046875
+2021-04-13 12:44:40,134 Epoch: 5	Loss: 1.583670973777771	Top1 accuracy: 69.7265625
+2021-04-13 13:23:33,054 Epoch: 6	Loss: 1.60888671875	Top1 accuracy: 70.5078125
+2021-04-13 14:02:34,418 Epoch: 7	Loss: 1.4589794874191284	Top1 accuracy: 65.234375
+2021-04-13 14:41:59,836 Epoch: 8	Loss: 1.2967954874038696	Top1 accuracy: 75.78125
+2021-04-13 15:20:24,931 Epoch: 9	Loss: 1.1800960302352905	Top1 accuracy: 77.34375
+2021-04-13 15:20:32,726 Model checkpoint and metadata has been saved at runs/Apr13_09-18-19_rahulahuja-U2099.
+2021-04-13 15:57:14,823 Epoch: 10	Loss: 1.2561595439910889	Top1 accuracy: 73.6328125
