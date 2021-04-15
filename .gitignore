@@ -1,6 +1,9 @@
 data/*
 dataset/*
+dataset2/*
 experiment.ipynb
-
+SimCLR/runs/*
+self-supervised-relational-reasoning/checkpoint/*
+barlowtwins/checkpoint/*
 .DS_Store
-
+student_dataset.tar.gz
