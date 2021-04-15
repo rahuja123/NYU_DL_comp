@@ -1,83 +1,46 @@
 
+# Please do not change this file.
+# We will use this eval script to benchmark your model.
+# If you find a bug, post it on campuswire.
+
 import os
 import argparse
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms, models
+from dataloader import CustomDataset
+from submission import get_model, eval_transform, team_id, team_name, email_address
 
-from utils.data_helper import CustomDataset
-
-net = torch.hub.load('facebookresearch/barlowtwins:main', 'resnet50', _use_new_zipfile_serialization=False)
 parser = argparse.ArgumentParser()
-parser.add_argument('--checkpoint_dir', default='checkpoint/', type=str)
+parser.add_argument('--checkpoint-path', type=str)
 args = parser.parse_args()
-
-train_transform = transforms.Compose([
-    transforms.ToTensor(),
-])
-
-# trainset = CustomDataset(root='/dataset', split="train", transform=train_transform)
-# trainloader = torch.utils.data.DataLoader(trainset, batch_size=256, shuffle=True, num_workers=2)
 
 evalset = CustomDataset(root='/dataset', split="val", transform=eval_transform)
 evalloader = torch.utils.data.DataLoader(evalset, batch_size=256, shuffle=False, num_workers=2)
 
+net = get_model()
+checkpoint = torch.load(args.checkpoint_path)
+net.load_state_dict(checkpoint)
+net = net.cuda()
 
-if not os.path.exists(args.checkpoint_dir):
-    os.makedirs(args.checkpoint_dir)
-
-# net = VAE().cuda()
-net= net.cuda()
 net.eval()
-eval()
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in evalloader:
+        images, labels = data
 
-# criterion = nn.CrossEntropyLoss()
-# optimizer = torch.optim.Adam(net.parameters(), lr=0.1)
-#
-# print('Start Training')
-# net.train()
-# for epoch in range(10):
-#     running_loss = 0.0
-#     for i, data in enumerate(trainloader):
-#         # get the inputs; data is a list of [inputs, labels]
-#         inputs, labels = data
-#         inputs, labels = inputs.cuda(), labels.cuda()
-#
-#         outputs = net(inputs)
-#         loss = criterion(outputs, labels)
-#
-#         optimizer.zero_grad()
-#         loss.backward()
-#         optimizer.step()
-#
-#         # print statistics
-#         running_loss += loss.item()
-#         if i % 10 == 9:    # print every 10 mini-batches
-#             print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 10))
-#             running_loss = 0.0
-#
-#     if epoch%20==0:
-#         eval()
-#
-# print('Finished Training')
-#
-# os.makedirs(args.checkpoint_dir, exist_ok=True)
-# torch.save(net.state_dict(), os.path.join(args.checkpoint_dir, "net_demo.pth"))
-#
-# print(f"Saved checkpoint to {os.path.join(args.checkpoint_dir, 'net_demo.pth')}")
+        images = images.cuda()
+        labels = labels.cuda()
 
-def eval():
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data in evalloader:
-            images, labels = data
-            images = images.cuda()
-            labels = labels.cuda()
-            outputs = net(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+        outputs = net(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
 
-    print(f" Accuracy: {(100 * correct / total):.2f}%")
+
+print(f"Team {team_id}: {team_name} Accuracy: {(100 * correct / total):.2f}%")
+print(f"Team {team_id}: {team_name} Email: {email_address}")
+>>>>>>> 297475cb13702a07cc1f9a66134545bc3bcfd6c1
