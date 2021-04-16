@@ -11,7 +11,7 @@ model_names = sorted(name for name in models.__dict__
                      and callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='PyTorch SimCLR')
-parser.add_argument('-data', metavar='DIR', default='../NYU_DL_comp/dataset2',
+parser.add_argument('-data', metavar='DIR', default='../dataset2',
                     help='path to dataset')
 parser.add_argument('-dataset-name', default='nyu',
                     help='dataset name', choices=['stl10', 'cifar10', 'nyu'])

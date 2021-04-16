@@ -34,7 +34,7 @@ class ContrastiveLearningDataset:
                                                               self.get_simclr_pipeline_transform(96),
                                                               n_views),
                                                           download=True),
-                          'nyu': lambda: CustomDataset(root= '../NYU_DL_comp/dataset', split='unlabeled',
+                          'nyu': lambda: CustomDataset(root= self.root_folder, split='unlabeled',
                                                         transform=ContrastiveLearningViewGenerator(
                                                             self.get_simclr_pipeline_transform(96),
                                                             n_views))
