@@ -26,6 +26,7 @@ parser.add_argument("--finetune", default="False", type=str, help="Finetune the 
 parser.add_argument("--num_workers", default=8, type=int, help="Number of torchvision workers used to load data (default: 8)")
 parser.add_argument("--id", default="", help="Additional string appended when saving the checkpoints")
 parser.add_argument("--gpu", default=0, type=int, help="GPU id in case of multiple GPUs")
+parser.add_argument('--dataset_dir', default='../dataset', help='provide dataset relative path')
 args = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
@@ -62,7 +63,8 @@ from datamanager import DataManager
 manager = DataManager(args.seed)
 num_classes = manager.get_num_classes(args.dataset)
 train_transform = manager.get_train_transforms("lineval", args.dataset)
-train_loader, _ = manager.get_train_loader(dataset=args.dataset,
+train_loader, _ = manager.get_train_loader(data_root= args.dataset_dir,
+                                        dataset=args.dataset,
                                         data_type="single",
                                         data_size=args.data_size,
                                         train_transform=train_transform,
@@ -70,7 +72,7 @@ train_loader, _ = manager.get_train_loader(dataset=args.dataset,
                                         num_workers=args.num_workers,
                                         drop_last=False)
 
-test_loader = manager.get_test_loader(args.dataset, args.data_size)
+test_loader = manager.get_test_loader(args.dataset_dir, args.dataset, args.data_size)
 
 if(args.backbone=="conv4"):
     from backbones.conv4 import Conv4
@@ -115,6 +117,12 @@ def main():
             loss_train, accuracy_train = model.finetune(epoch, train_loader)
         else:
             loss_train, accuracy_train = model.linear_evaluation(epoch, train_loader)
+
+        if (epoch+1)%5==0:
+            loss_test, accuracy_test = model.test(test_loader)
+            print("Test accuracy: " + str(accuracy_test) + "%")
+
+        # model.save(checkpoint_path)
 
     checkpoint_path = "./checkpoint/"+str(args.method)+"/"+str(args.dataset)+"/"+header+"_epoch_"+ str(epoch+1)+"_finetune_"+str(args.finetune)+"_linear_evaluation.tar"
     print("[INFO] Saving in:", checkpoint_path)

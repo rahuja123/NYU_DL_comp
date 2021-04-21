@@ -147,10 +147,10 @@ class Model(torch.nn.Module):
         return relation_pairs, target, tot_positive, tot_negative
 
 
-    def train(self, epoch, train_loader, what):
-        print(epoch)
-        print(train_loader)
-        print(what)
+    def train(self, epoch, train_loader):
+        # print(epoch)
+        # print(train_loader)
+        # print(what)
         start_time = time.time()
         self.net.train()
         self.relation_module.train()

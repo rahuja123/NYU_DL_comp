@@ -46,6 +46,7 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
 parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
                     metavar='DIR', help='path to checkpoint directory')
+parser.add_argument('--resume_path', default='')
 
 
 def main():
@@ -96,6 +97,7 @@ def main_worker(gpu, args):
 
     # automatically resume from checkpoint if it exists
     if (args.checkpoint_dir / 'checkpoint.pth').is_file():
+        print("resuming from the saved checkpoint")
         ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
                           map_location='cpu')
         start_epoch = ckpt['epoch']
@@ -105,7 +107,7 @@ def main_worker(gpu, args):
         start_epoch = 0
 
     # dataset = torchvision.datasets.ImageFolder(args.data / 'train', Transform())
-    dataset= CustomDataset(root='../NYU_DL_comp/dataset', split='unlabeled', transform=Transform())
+    dataset= CustomDataset(root='../dataset', split='unlabeled', transform=Transform())
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     assert args.batch_size % args.world_size == 0
     per_device_batch_size = args.batch_size // args.world_size

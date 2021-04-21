@@ -79,7 +79,7 @@ class StandardModel(torch.nn.Module):
             for i_g, g in enumerate(self.optimizer_finetune.param_groups):
                 g["lr"] *= 0.1 #divide by 10
                 print("Group[" + str(i_g) + "] learning rate: " + str(g["lr"]))
-                
+
         minibatch_iter = tqdm.tqdm(train_loader, desc=f"(Epoch {epoch}) Minibatch")
         loss_meter = AverageMeter()
         accuracy_meter = AverageMeter()

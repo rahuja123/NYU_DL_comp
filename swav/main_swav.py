@@ -19,7 +19,7 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 import torch.optim
-import apex
+# import apex
 from apex.parallel.LARC import LARC
 
 from src.utils import (
@@ -40,9 +40,10 @@ parser = argparse.ArgumentParser(description="Implementation of SwAV")
 #########################
 #### data parameters ####
 #########################
-parser.add_argument("--data_path", type=str, default="../NYU_DL_comp/dataset2/unlabeled",
+
+parser.add_argument("--data_path", type=str, default="/home/rahulahuja/nyu/dl/NYU_DL_comp/dataset",
                     help="path to dataset repository")
-parser.add_argument("--nmb_crops", type=int, default=[2], nargs="+",
+parser.add_argument("--nmb_crops", type=int, default=[6], nargs="+",
                     help="list of number of crops (example: [2, 6])")
 parser.add_argument("--size_crops", type=int, default=[96], nargs="+",
                     help="crops resolutions (example: [224, 96])")
@@ -74,9 +75,9 @@ parser.add_argument("--epoch_queue_starts", type=int, default=15,
 #########################
 #### optim parameters ###
 #########################
-parser.add_argument("--epochs", default=100, type=int,
+parser.add_argument("--epochs", default=200, type=int,
                     help="number of total epochs to run")
-parser.add_argument("--batch_size", default=64, type=int,
+parser.add_argument("--batch_size", default=128, type=int,
                     help="batch size per gpu, i.e. how many unique instances per gpu")
 parser.add_argument("--base_lr", default=4.8, type=float, help="base learning rate")
 parser.add_argument("--final_lr", type=float, default=0, help="final learning rate")
@@ -106,7 +107,7 @@ parser.add_argument("--local_rank", default=0, type=int,
 parser.add_argument("--arch", default="resnet50", type=str, help="convnet architecture")
 parser.add_argument("--hidden_mlp", default=2048, type=int,
                     help="hidden layer dimension in projection head")
-parser.add_argument("--workers", default=10, type=int,
+parser.add_argument("--workers", default=8, type=int,
                     help="number of data loading workers")
 parser.add_argument("--checkpoint_freq", type=int, default=25,
                     help="Save the model periodically")

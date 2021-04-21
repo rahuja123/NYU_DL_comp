@@ -200,12 +200,12 @@ else:
 
 
 model.to(device)
-print(model)
-#model = model.to(device)
-
-model = torch.nn.DataParallel(model).cuda()
-
-print(model)
+# print(model)
+# #model = model.to(device)
+#
+# model = torch.nn.DataParallel(model).cuda()
+#
+# print(model)
 
 
 # NOTE: the checkpoint must be loaded AFTER

@@ -85,7 +85,7 @@ def main_worker(gpu, args):
     if args.weights == 'freeze':
         model.requires_grad_(False)
 
-    classifier = nn.Linear(2048, 1000).cuda(gpu)
+    classifier = nn.Linear(2048, 800).cuda(gpu)
     classifier.weight.data.normal_(mean=0.0, std=0.01)
     classifier.bias.data.zero_()
     classifier = torch.nn.parallel.DistributedDataParallel(classifier, device_ids=[gpu])
