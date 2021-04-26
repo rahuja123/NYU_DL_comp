@@ -6,20 +6,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms, models
 
-from dataloader import CustomDataset
+from  data_helper import CustomDataset
 from submission import get_model, eval_transform, team_id, team_name, email_address
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--checkpoint-path', type=str)
 args = parser.parse_args()
 
-evalset = CustomDataset(root='/dataset', split="val", transform=eval_transform)
+evalset = CustomDataset(root='../dataset', split="val", transform=eval_transform)
 evalloader = torch.utils.data.DataLoader(evalset, batch_size=256, shuffle=False, num_workers=2)
 
 net = get_model()
-net.load(args.checkpoint_path)
-# checkpoint = torch.load(args.checkpoint_path)
-# net.load_state_dict(checkpoint)
+# net.load(args.checkpoint_path)
+checkpoint = torch.load(args.checkpoint_path)
+net.load_state_dict(checkpoint)
 net = net.cuda()
 
 net.eval()

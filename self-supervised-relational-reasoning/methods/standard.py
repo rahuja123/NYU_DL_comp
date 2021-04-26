@@ -22,19 +22,42 @@ import numpy as np
 from utils import AverageMeter
 
 class StandardModel(torch.nn.Module):
-    def __init__(self, feature_extractor, num_classes, tot_epochs=200):
+    def __init__(self,args,  feature_extractor, num_classes, tot_epochs=200):
         super(StandardModel, self).__init__()
         self.num_classes = num_classes
         self.tot_epochs = tot_epochs
         self.feature_extractor = feature_extractor
+        self.args= args
+
+        count=0
+        # for param in self.feature_extractor.parameters():
+        #
+        #     print(param)
+
+        for child in list(self.feature_extractor.children())[:args.freeze_after]:
+            for param in child.parameters():
+                param.requires_grad= False
+        # import pdb; pdb.set_trace()
+
+        print(count)
+        # # print(len(self.feature_extractor.parameters()))
+        # exit()
         feature_size = feature_extractor.feature_size
         self.classifier = nn.Linear(feature_size, num_classes)
+        # self.classifier = nn.Sequential(
+        #                     nn.Linear(feature_size, feature_size),
+        #                     nn.ReLU(),
+        #                     nn.Linear(feature_size, num_classes))
+        print(self.args.scheduler)
         self.ce = torch.nn.CrossEntropyLoss()
         self.optimizer = SGD([{"params": self.feature_extractor.parameters(), "lr": 0.1, "momentum": 0.9},
                               {"params": self.classifier.parameters(), "lr": 0.1, "momentum": 0.9}])
-        self.optimizer_lineval = Adam([{"params": self.classifier.parameters(), "lr": 0.001,"weight_decay": 1e-5}])
-        self.optimizer_finetune = Adam([{"params": self.feature_extractor.parameters(), "lr": 0.001, "weight_decay": 1e-5},
-                                        {"params": self.classifier.parameters(), "lr": 0.0001, "weight_decay": 1e-5}])
+        self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=0.01, max_lr=0.1)
+        self.optimizer_lineval = Adam([{"params": self.classifier.parameters(), "lr": 0.001,"momentum": 0.9}])
+        # self.scheduler_lineval = torch.optim.lr_scheduler.CyclicLR(self.optimizer_lineval, base_lr=0.001, max_lr=0.1, cycle_momentum=False)
+        self.optimizer_finetune = Adam([{"params": self.feature_extractor.parameters(), "lr": 0.001, "momentum": 0.9},
+                                        {"params": self.classifier.parameters(), "lr": 0.0001, "momentum": 0.9}])
+        self.scheduler_finetune = torch.optim.lr_scheduler.CyclicLR(self.optimizer_finetune, base_lr=0.00001, max_lr=0.01, cycle_momentum=False)
 
     def forward(self, x, detach=False):
         if(detach): out = self.feature_extractor(x).detach()
@@ -74,9 +97,8 @@ class StandardModel(torch.nn.Module):
     def linear_evaluation(self, epoch, train_loader):
         self.feature_extractor.eval()
         self.classifier.train()
-
-        if(epoch==int(self.tot_epochs*0.5) or epoch==int(self.tot_epochs*0.75)):
-            for i_g, g in enumerate(self.optimizer_finetune.param_groups):
+        if epoch==int(self.tot_epochs*0.5) or epoch==int(self.tot_epochs*0.75):
+            for i_g, g in enumerate(self.optimizer_lineval.param_groups):
                 g["lr"] *= 0.1 #divide by 10
                 print("Group[" + str(i_g) + "] learning rate: " + str(g["lr"]))
 
@@ -102,10 +124,10 @@ class StandardModel(torch.nn.Module):
         self.feature_extractor.train()
         self.classifier.train()
 
-        if(epoch==int(self.tot_epochs*0.5) or epoch==int(self.tot_epochs*0.75)):
-            for i_g, g in enumerate(self.optimizer_finetune.param_groups):
-                g["lr"] *= 0.1 #divide by 10
-                print("Group[" + str(i_g) + "] learning rate: " + str(g["lr"]))
+        # if(epoch==int(self.tot_epochs*0.5) or epoch==int(self.tot_epochs*0.75)):
+        #     for i_g, g in enumerate(self.optimizer_finetune.param_groups):
+        #         g["lr"] *= 0.1 #divide by 10
+        #         print("Group[" + str(i_g) + "] learning rate: " + str(g["lr"]))
 
         minibatch_iter = tqdm.tqdm(train_loader, desc=f"(Epoch {epoch}) Minibatch")
         loss_meter = AverageMeter()
@@ -123,6 +145,8 @@ class StandardModel(torch.nn.Module):
             accuracy = (100.0 * correct / float(len(target)))
             accuracy_meter.update(accuracy.item(), len(target))
             minibatch_iter.set_postfix({"loss": loss_meter.avg, "acc": accuracy_meter.avg})
+            if not self.args.scheduler=='default':
+                self.scheduler_finetune.step()
         return loss_meter.avg, accuracy_meter.avg
 
     def test(self, test_loader):

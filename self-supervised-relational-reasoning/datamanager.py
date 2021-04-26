@@ -358,6 +358,8 @@ class DataManager():
                                                   transforms.RandomErasing(p=0.5, scale=(cutout, cutout), ratio=(1.0, 1.0))])
         elif(method=="lineval"):
             train_transform = transforms.Compose([transforms.ToTensor(), normalize])
+        elif(method=="lineval+new_transfrom"):
+            train_transform = transforms.Compose([transforms.RandomHorizontalFlip(),transforms.ToTensor(),transforms.RandomErasing(p=0.5, scale=(0.02, 0.33)), normalize])
         else:
             raise Exception("[ERROR] The method " + str(method) + " is not supported!")
 

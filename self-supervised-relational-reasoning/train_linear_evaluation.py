@@ -27,6 +27,10 @@ parser.add_argument("--num_workers", default=8, type=int, help="Number of torchv
 parser.add_argument("--id", default="", help="Additional string appended when saving the checkpoints")
 parser.add_argument("--gpu", default=0, type=int, help="GPU id in case of multiple GPUs")
 parser.add_argument('--dataset_dir', default='../dataset', help='provide dataset relative path')
+parser.add_argument('--optimizer', default='SGD', help='[ADAM, SGD]')
+parser.add_argument('--freeze_after', default=0, type=int)
+parser.add_argument('--scheduler', default='default', help='warmup,cyclic, default')
+
 args = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
@@ -62,7 +66,10 @@ print("[INFO] Device type:", str(device))
 from datamanager import DataManager
 manager = DataManager(args.seed)
 num_classes = manager.get_num_classes(args.dataset)
-train_transform = manager.get_train_transforms("lineval", args.dataset)
+if args.finetune:
+    train_transform = manager.get_train_transforms("finetune", args.dataset)
+else:
+    train_transform = manager.get_train_transforms("linear", args.dataset)
 train_loader, _ = manager.get_train_loader(data_root= args.dataset_dir,
                                         dataset=args.dataset,
                                         data_type="single",
@@ -102,7 +109,7 @@ def main():
     checkpoint = torch.load(args.checkpoint)
     feature_extractor.load_state_dict(checkpoint["backbone"])
     from methods.standard import StandardModel
-    model = StandardModel(feature_extractor, num_classes)
+    model = StandardModel(args, feature_extractor, num_classes, args.epochs)
     model.to(device)
     if not os.path.exists("./checkpoint/"+str(args.method)+"/"+str(args.dataset)):
         os.makedirs("./checkpoint/"+str(args.method)+"/"+str(args.dataset))
@@ -124,7 +131,7 @@ def main():
 
         # model.save(checkpoint_path)
 
-    checkpoint_path = "./checkpoint/"+str(args.method)+"/"+str(args.dataset)+"/"+header+"_epoch_"+ str(epoch+1)+"_finetune_"+str(args.finetune)+"_linear_evaluation.tar"
+    checkpoint_path = "./checkpoint/"+str(args.method)+"/"+str(args.dataset)+"/"+header+"_epoch_"+ str(epoch+1)+"_finetune_"+str(args.finetune)+"_linear_evaluation_2layer.tar"
     print("[INFO] Saving in:", checkpoint_path)
     model.save(checkpoint_path)
     loss_test, accuracy_test = model.test(test_loader)

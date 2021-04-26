@@ -7,3 +7,6 @@ self-supervised-relational-reasoning/checkpoint/*
 barlowtwins/checkpoint/*
 .DS_Store
 student_dataset.tar.gz
+*.pth
+self-supervised-relational-reasoning/*.pth
+r50_1x_sk0/*

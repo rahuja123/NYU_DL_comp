@@ -89,8 +89,8 @@ class Model(torch.nn.Module):
           ("linear2",  nn.Linear(256, 1)),
         ]))
 
-        self.optimizer = Adam([{"params": self.net.parameters(), "lr": 0.001},
-                               {"params": self.relation_module.parameters(), "lr": 0.001}])
+        self.optimizer = Adam([{"params": self.net.parameters(), "lr": 0.0001},
+                               {"params": self.relation_module.parameters(), "lr": 0.0001}])
 
         self.fl = FocalLoss(gamma=2.0, alpha=0.5) #Using reccommended value for gamma: 2.0
         #self.bce = nn.BCEWithLogitsLoss() # Standard BCE loss can also be used
