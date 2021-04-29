@@ -30,6 +30,7 @@ parser.add_argument('--dataset_dir', default='../dataset', help='provide dataset
 parser.add_argument('--optimizer', default='SGD', help='[ADAM, SGD]')
 parser.add_argument('--freeze_after', default=0, type=int)
 parser.add_argument('--scheduler', default='default', help='warmup,cyclic, default')
+parser.add_argument('--test_freq', default=5, type=int)
 
 args = parser.parse_args()
 
@@ -125,9 +126,14 @@ def main():
         else:
             loss_train, accuracy_train = model.linear_evaluation(epoch, train_loader)
 
-        if (epoch+1)%5==0:
+        if (epoch+1)>0 and (epoch+1)%args.test_freq==0:
+            if args.optimizer =='SWA':
+                model.optimizer_finetune.swap_swa_sgd()
+                model.optimizer_finetune.bn_update(train_loader, model.feature_extractor, device='cuda')
             loss_test, accuracy_test = model.test(test_loader)
             print("Test accuracy: " + str(accuracy_test) + "%")
+            if args.optimizer =='SWA':
+                model.optimizer_finetune.swap_swa_sgd()
 
         # model.save(checkpoint_path)
 

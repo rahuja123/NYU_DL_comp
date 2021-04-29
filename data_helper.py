@@ -11,11 +11,6 @@ import torchvision
 from torchvision import  transforms
 
 
-normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
-
-# The dataset class for unlabeled data.
-
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, root, split, transform):
         r"""
@@ -51,4 +46,31 @@ class CustomDataset(torch.utils.data.Dataset):
             else:
                 label = self.labels[idx]
         return self.transform(img), label
-    
+
+
+class UpdatedDataset(torch.utils.data.Dataset):
+    def __init__(self, root, transform):
+        r"""
+        Args:
+            root: Location of the dataset folder, usually it is /dataset
+            split: The split you want to used, it should be one of train, val or unlabeled.
+            transform: the transform you want to applied to the images.
+        """
+        split = 'unlabeled'
+        self.transform = transform
+        self.image_dir = os.path.join(root, split)
+        label_path = os.path.join(root, "label_18.pt")
+        idx_path = os.path.join(root, "request_18.csv")
+        self.num_images = 12800
+        self.ids = np.loadtxt(idx_path, delimiter=",")  
+        self.ids = self.ids.astype(int)
+        self.labels = torch.load(label_path)
+
+    def __len__(self):
+        return self.num_images
+
+    def __getitem__(self, idx):
+        with open(os.path.join(self.image_dir, f"{self.ids[idx]}.png"), 'rb') as f:
+            img = Image.open(f).convert('RGB')
+            label = self.labels[idx]
+        return self.transform(img), label

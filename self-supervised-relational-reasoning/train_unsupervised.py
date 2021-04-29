@@ -18,7 +18,7 @@ parser.add_argument("--seed", default=-1, type=int, help="Seed for Numpy and PyT
 parser.add_argument("--epoch_start", default=0, type=int, help="Epoch to start learning from, used when resuming")
 parser.add_argument("--epochs", default=200, type=int, help="Total number of epochs")
 parser.add_argument("--dataset", default="cifar10", help="Dataset: cifar10|100, supercifar100, tiny, slim, stl10, nyu")
-parser.add_argument("--backbone", default="conv4", help="Backbone: conv4, resnet|8|32|34|56")
+parser.add_argument("--backbone", default="conv4", help="Backbone: conv4, resnet|8|32|34|56|50")
 parser.add_argument("--method", default="relationnet", help="Model: standard, randomweights, relationnet, rotationnet, deepinfomax, simclr")
 parser.add_argument("--data_size", default=128, type=int, help="Size of the mini-batch")
 parser.add_argument("--K", default=32, type=int, help="Total number of augmentations (K), sed only in RelationNet")
@@ -77,7 +77,7 @@ elif(args.backbone=="resnet34"):
                  norm_layer=None)
 elif(args.backbone=="resnet50"):
     from backbones.resnet_large import ResNet, Bottleneck
-    feature_extractor = ResNet(BasicBlock, layers=[3, 4, 6, 3],zero_init_residual=False,
+    feature_extractor = ResNet(Bottleneck, layers=[3, 4, 6, 3],zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
                  norm_layer=None)
 else:
@@ -200,12 +200,6 @@ else:
 
 
 model.to(device)
-# print(model)
-# #model = model.to(device)
-#
-# model = torch.nn.DataParallel(model).cuda()
-#
-# print(model)
 
 
 # NOTE: the checkpoint must be loaded AFTER
@@ -216,16 +210,16 @@ if(args.checkpoint!=""):
     print("Loading checkpoint: Done!")
 
 def main():
-    if not os.path.exists("./checkpoint/"+str(args.method)+"/"+str(args.dataset)):
-        os.makedirs("./checkpoint/"+str(args.method)+"/"+str(args.dataset))
-    log_file = "./checkpoint/"+str(args.method)+"/"+str(args.dataset)+"/log_"+header+".cvs"
+    if not os.path.exists("./checkpoint/"+str(args.method)+"/"+str(args.dataset)+'/'+str(args.backbone)):
+        os.makedirs("./checkpoint/"+str(args.method)+"/"+str(args.dataset)+'/'+str(args.backbone))
+    log_file = "./checkpoint/"+str(args.method)+"/"+str(args.dataset)+'/'+str(args.backbone)+"/log_"+header+".cvs"
     with open(log_file, "w") as myfile: myfile.write("epoch,loss,score" + "\n") # create a new log file (it destroys the previous one)
     for epoch in range(args.epoch_start, args.epochs):
         loss_train, accuracy_train = model.train(epoch, train_loader) #<-- Each model must have a "train" method
         with open(log_file, "a") as myfile:
                 myfile.write(str(epoch)+","+str(loss_train)+","+str(accuracy_train)+"\n")
         if(epoch%9==0):
-            checkpoint_path = "./checkpoint/"+str(args.method)+"/"+str(args.dataset)+"/"+header+"_epoch_"+ str(epoch+1)+".tar"
+            checkpoint_path = "./checkpoint/"+str(args.method)+"/"+str(args.dataset)+'/'+str(args.backbone)+"/"+header+"_epoch_"+ str(epoch+1)+".tar"
             print("[INFO] Saving in:", checkpoint_path)
             model.save(checkpoint_path)
     if(args.method=="standard"):

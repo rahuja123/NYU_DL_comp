@@ -77,15 +77,18 @@ for k in list(state_dict.keys()):
 log = model.load_state_dict(state_dict, strict=False)
 assert log.missing_keys == ['fc.weight', 'fc.bias']
 
-train_loader, test_loader = get_nyu_data_loaders()
+
 
 for name, param in model.named_parameters():
     if name not in ['fc.weight', 'fc.bias']:
         param.requires_grad = False
 
+
+
 parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
 assert len(parameters) == 2  # fc.weight, fc.bias
 
+train_loader, test_loader = get_nyu_data_loaders()
 optimizer = torch.optim.Adam(model.parameters(), lr=3e-4, weight_decay=0.0008)
 criterion = torch.nn.CrossEntropyLoss().to(device)
 
@@ -141,5 +144,5 @@ for epoch in range(epochs):
     if top1_accuracy > best_acc:
         torch.save(model.state_dict(), '/home/rahulahuja/nyu/dl/NYU_DL_comp/SimCLR/runs/Apr16_19-00-37_rahulahuja-U2099/supervised.pth')
         best_acc= top1_accuracy
-        
+
     print(f"Epoch {epoch}\tTop1 Train accuracy {top1_train_accuracy.item()}\tTop1 Test accuracy: {top1_accuracy.item()}\tTop5 test acc: {top5_accuracy.item()}")

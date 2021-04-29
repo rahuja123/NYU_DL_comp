@@ -20,7 +20,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import numpy as np
 from PIL import Image
-from data_helper import CustomDataset
+from data_helper import CustomDataset, UpdatedDataset
 
 class MultiSTL10(dset.STL10):
     def __init__(self, repeat_augmentations, **kwds):
@@ -276,7 +276,7 @@ class DataManager():
 
     def _check(self, dataset):
         datasets_list = ["cifar10", "stl10", "nyu","cifar100",
-                         "supercifar100", "tiny", "slim"]
+                         "supercifar100", "tiny", "slim", "nyu_2"]
         if(dataset not in datasets_list):
             raise Exception("[ERROR] The dataset " + str(dataset) + " is not supported!")
         if(dataset=="slim"):
@@ -296,7 +296,7 @@ class DataManager():
         self._check(dataset)
         if(dataset=="cifar10"): return 10
         elif(dataset=="stl10"): return 10
-        elif(dataset=="nyu"): return 800
+        elif(dataset=="nyu" or dataset=="nyu_2"): return 800
         elif(dataset=="supercifar100"): return 20
         elif(dataset=="cifar100"): return 100
         elif(dataset=="tiny"): return 200
@@ -318,6 +318,9 @@ class DataManager():
             side = 32; padding = 4; cutout=0.25
         elif(dataset=="stl10" or dataset=="nyu"):
             normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            side = 96; padding = 12; cutout=0.111
+        elif(dataset=="nyu_2"):
+            normalize = transforms.Normalize(mean=[0.4836, 0.4527, 0.4011], std=[0.2696, 0.2604, 0.2731])
             side = 96; padding = 12; cutout=0.111
         elif(dataset=="cifar100" or dataset=="supercifar100"):
             normalize = transforms.Normalize(mean=[0.507, 0.487, 0.441], std=[0.267, 0.256, 0.276])
@@ -411,6 +414,12 @@ class DataManager():
                 train_set = dset.STL10(root="data", split="train", transform=train_transform, download=True)
             elif(dataset=="nyu"):
                 train_set = CustomDataset(root=data_root, split="train", transform=train_transform)
+
+            elif(dataset=="nyu_2"):
+                trainset1 = UpdatedDataset(root=data_root, transform=train_transform)
+                trainset2 = CustomDataset(root=data_root, split="train", transform=train_transform)
+                train_set= torch.utils.data.ConcatDataset([trainset1, trainset2])
+
             elif(dataset=="supercifar100"):
                 train_set = SuperCIFAR100("data", train=True, transform=train_transform, download=True)
             elif(dataset=="cifar100"):
@@ -441,6 +450,10 @@ class DataManager():
             test_transform = transforms.Compose([transforms.ToTensor(), normalize])
             test_set = dset.STL10("data", split="test", transform=test_transform, download=True)
         elif(dataset=="nyu"):
+            normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            test_transform = transforms.Compose([transforms.ToTensor(), normalize])
+            test_set= CustomDataset(root=data_root, split="val", transform=test_transform)
+        elif(dataset=="nyu_2"):
             normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             test_transform = transforms.Compose([transforms.ToTensor(), normalize])
             test_set= CustomDataset(root=data_root, split="val", transform=test_transform)

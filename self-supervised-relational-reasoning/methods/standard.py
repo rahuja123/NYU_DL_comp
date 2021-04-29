@@ -20,6 +20,7 @@ import torchvision.transforms as transforms
 import tqdm
 import numpy as np
 from utils import AverageMeter
+from torchcontrib.optim import SWA
 
 class StandardModel(torch.nn.Module):
     def __init__(self,args,  feature_extractor, num_classes, tot_epochs=200):
@@ -49,11 +50,21 @@ class StandardModel(torch.nn.Module):
         self.ce = torch.nn.CrossEntropyLoss()
         self.optimizer = SGD([{"params": self.feature_extractor.parameters(), "lr": 0.1, "momentum": 0.9},
                               {"params": self.classifier.parameters(), "lr": 0.1, "momentum": 0.9}])
-        self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=0.01, max_lr=0.1)
         self.optimizer_lineval = Adam([{"params": self.classifier.parameters(), "lr": 0.001,"momentum": 0.9}])
-        self.optimizer_finetune = Adam([{"params": self.feature_extractor.parameters(), "lr": 0.001, "momentum": 0.9},
-                                        {"params": self.classifier.parameters(), "lr": 0.0001, "momentum": 0.9}])
+
+
+        if args.optimizer=='SWA':
+            self.base_optimizer_finetune = SGD([{"params": self.feature_extractor.parameters(), "lr": 0.001, "momentum": 0.9},
+                                            {"params": self.classifier.parameters(), "lr": 0.0001, "momentum": 0.9}])
+
+            self.optimizer_finetune = SWA(self.base_optimizer_finetune, swa_start=10, swa_freq=5, swa_lr=0.0005)
+
+        else:
+            self.optimizer_finetune = Adam([{"params": self.feature_extractor.parameters(), "lr": 0.001, "momentum": 0.9},
+                                            {"params": self.classifier.parameters(), "lr": 0.0001, "momentum": 0.9}])
+
         if self.args.scheduler=='cyclic':
+            self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=0.01, max_lr=0.1)
             self.scheduler_finetune = torch.optim.lr_scheduler.CyclicLR(self.optimizer_finetune, base_lr=0.00001, max_lr=0.01, cycle_momentum=False)
             self.scheduler_lineval = torch.optim.lr_scheduler.CyclicLR(self.optimizer_lineval, base_lr=0.001, max_lr=0.1, cycle_momentum=False)
 
@@ -150,6 +161,8 @@ class StandardModel(torch.nn.Module):
             minibatch_iter.set_postfix({"loss": loss_meter.avg, "acc": accuracy_meter.avg})
             if not self.args.scheduler=='default':
                 self.scheduler_finetune.step()
+        # if self.args.optimizer=='SWA':
+        #     self.optimizer_finetune.swap_swa_sgd()
         return loss_meter.avg, accuracy_meter.avg
 
     def test(self, test_loader):
