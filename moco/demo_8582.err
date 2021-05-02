@@ -1,0 +1,12 @@
++ mkdir /tmp/ra3136
++ export SINGULARITY_CACHEDIR=/tmp/ra3136
++ SINGULARITY_CACHEDIR=/tmp/ra3136
++ cp -rp /scratch/DL21SP/student_dataset.sqsh /tmp
++ echo 'Dataset is copied to /tmp'
++ cd /home/ra3136/test
++ singularity exec --nv --bind /scratch --overlay /scratch/DL21SP/conda.sqsh:ro --overlay /tmp/student_dataset.sqsh:ro /share/apps/images/cuda11.1-cudnn8-devel-ubuntu18.04.sif /bin/bash -c '
+source /ext3/env.sh
+conda activate dev
+python3 main_moco.py   -a resnet50   --lr 0.0075   --batch-size 64   --dist-url '\''tcp://localhost:10004'\'' --multiprocessing-distributed --world-size 1 --rank 0 -data /dataset --mlp --moco-t 0.2 --aug-plus --cos
+'
+python3: can't open file 'main_moco.py': [Errno 2] No such file or directory

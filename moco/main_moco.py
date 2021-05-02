@@ -89,7 +89,7 @@ parser.add_argument('--moco-m', default=0.999, type=float,
                     help='moco momentum of updating key encoder (default: 0.999)')
 parser.add_argument('--moco-t', default=0.07, type=float,
                     help='softmax temperature (default: 0.07)')
-
+parser.add_argument('--checkpoint_dir', help='path to checkpoint')
 # options for moco v2
 parser.add_argument('--mlp', action='store_true',
                     help='use mlp head')
@@ -289,7 +289,7 @@ def main_worker(gpu, ngpus_per_node, args):
                     'arch': args.arch,
                     'state_dict': model.state_dict(),
                     'optimizer' : optimizer.state_dict(),
-                }, is_best=False, filename='checkpoints_224/checkpoint_{:04d}.pth.tar'.format(epoch))
+                }, is_best=False, filename='{}/moco_unsupervised_{:04d}.pth.tar'.format(args.checkpoint_dir, epoch))
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -410,7 +410,7 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].contiguous().view(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
