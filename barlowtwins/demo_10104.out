@@ -5,3 +5,4 @@ evaluate.py /dataset /scratch/ra3136/checkpoints/barlow/resnet50.pth --weights f
 {"epoch": 1, "step": 100, "lr_backbone": 0.001999657324975557, "lr_classifier": 0.4999143312438893, "loss": 4.182399272918701, "time": 218}
 {"epoch": 1, "acc1": 20.7265625, "acc5": 40.08984375, "best_acc1": 20.7265625, "best_acc5": 40.08984375}
 {"epoch": 2, "step": 200, "lr_backbone": 0.0019986295347545736, "lr_classifier": 0.49965738368864343, "loss": 3.106757640838623, "time": 429}
+{"epoch": 2, "acc1": 29.671875, "acc5": 52.9765625, "best_acc1": 29.671875, "best_acc5": 52.9765625}
