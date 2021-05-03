@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --gres=gpu:1
-#SBATCH --partition=n1s16-t4-2
+#SBATCH --partition=n1s8-t4-1
 #SBATCH --account=dl18
 #SBATCH --time=12:00:00
 #SBATCH --output=demo_%j.out
