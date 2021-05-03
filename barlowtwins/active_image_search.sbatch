@@ -19,8 +19,6 @@ export SINGULARITY_CACHEDIR=/tmp/$USER
 cp -rp /scratch/DL21SP/student_dataset.sqsh /tmp
 echo "Dataset is copied to /tmp"
 
-cd $HOME/NYU_DL_comp/barlow/
-
 singularity exec --nv \
 --bind /scratch \
 --overlay /scratch/DL21SP/conda.sqsh:ro \
