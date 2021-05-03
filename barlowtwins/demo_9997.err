@@ -1,0 +1,25 @@
++ mkdir /tmp/ra3136
++ export SINGULARITY_CACHEDIR=/tmp/ra3136
++ SINGULARITY_CACHEDIR=/tmp/ra3136
++ cp -rp /scratch/DL21SP/student_dataset.sqsh /tmp
++ echo 'Dataset is copied to /tmp'
++ cd /home/ra3136/NYU_DL_comp/barlow/
+/opt/slurm/data/slurmd/job09997/slurm_script: line 22: cd: /home/ra3136/NYU_DL_comp/barlow/: No such file or directory
++ singularity exec --nv --bind /scratch --overlay /scratch/DL21SP/conda.sqsh:ro --overlay /tmp/student_dataset.sqsh:ro /share/apps/images/cuda11.1-cudnn8-devel-ubuntu18.04.sif /bin/bash -c '
+source /ext3/env.sh
+conda activate dev
+CUDA_VISIBLE_DEVICES=0,1 python3  main.py '\''/dataset/'\'' --epochs 200 --batch-size 256 --learning-rate 0.4 --lambd 0.0051 --projector 8192-8192-8192 --scale-loss 0.024 --checkpoint-dir /scratch/ra3136/checkpoints/barlow '
+Traceback (most recent call last):
+  File "main.py", line 328, in <module>
+    main()
+  File "main.py", line 63, in main
+    stdout = subprocess.check_output(cmd.split())
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/subprocess.py", line 415, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/subprocess.py", line 493, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/subprocess.py", line 858, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/subprocess.py", line 1706, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'scontrol'

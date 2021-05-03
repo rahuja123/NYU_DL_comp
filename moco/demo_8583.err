@@ -1,0 +1,38 @@
++ mkdir /tmp/ra3136
++ export SINGULARITY_CACHEDIR=/tmp/ra3136
++ SINGULARITY_CACHEDIR=/tmp/ra3136
++ cp -rp /scratch/DL21SP/student_dataset.sqsh /tmp
++ echo 'Dataset is copied to /tmp'
++ cd /home/ra3136/NYU_DL_comp/moco/
++ singularity exec --nv --bind /scratch --overlay /scratch/DL21SP/conda.sqsh:ro --overlay /tmp/student_dataset.sqsh:ro /share/apps/images/cuda11.1-cudnn8-devel-ubuntu18.04.sif /bin/bash -c '
+source /ext3/env.sh
+conda activate dev
+python3 main_moco.py   -a resnet50   --lr 0.0075   --batch-size 64   --dist-url '\''tcp://localhost:10004'\'' --multiprocessing-distributed --world-size 1 --rank 0 -data /dataset --mlp --moco-t 0.2 --aug-plus --cos
+'
+  0%|          | 0/8000 [00:00<?, ?it/s]  0%|          | 0/8000 [00:00<?, ?it/s]  0%|          | 0/8000 [00:09<?, ?it/s]  0%|          | 0/8000 [00:09<?, ?it/s]
+
+Traceback (most recent call last):
+  File "main_moco.py", line 419, in <module>
+    main()
+  File "main_moco.py", line 131, in main
+    mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, args))
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 230, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method='spawn')
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 188, in start_processes
+    while not context.join():
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 150, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 1 terminated with the following error:
+Traceback (most recent call last):
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 59, in _wrap
+    fn(i, *args)
+  File "/home/ra3136/NYU_DL_comp/moco/main_moco.py", line 281, in main_worker
+    train(train_loader, model, criterion, optimizer, epoch, args)
+  File "/home/ra3136/NYU_DL_comp/moco/main_moco.py", line 324, in train
+    acc1, acc5 = accuracy(output, target, topk=(1, 5))
+  File "/home/ra3136/NYU_DL_comp/moco/main_moco.py", line 413, in accuracy
+    correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+RuntimeError: view size is not compatible with input tensor's size and stride (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
+

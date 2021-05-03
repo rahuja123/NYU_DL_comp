@@ -1,0 +1,17 @@
++ mkdir /tmp/ra3136
++ export SINGULARITY_CACHEDIR=/tmp/ra3136
++ SINGULARITY_CACHEDIR=/tmp/ra3136
++ cp -rp /scratch/DL21SP/student_dataset.sqsh /tmp
++ echo 'Dataset is copied to /tmp'
++ cd /home/ra3136/NYU_DL_comp/barlow/
+/opt/slurm/data/slurmd/job09990/slurm_script: line 22: cd: /home/ra3136/NYU_DL_comp/barlow/: No such file or directory
++ singularity exec --nv --bind /scratch --overlay /scratch/DL21SP/conda.sqsh:ro --overlay /tmp/student_dataset.sqsh:ro /share/apps/images/cuda11.1-cudnn8-devel-ubuntu18.04.sif /bin/bash -c '
+source /ext3/env.sh
+conda activate dev
+CUDA_VISIBLE_DEVICES=0,1 python3  main.py '\''/dataset/'\'' --epochs 200 --batch-size 256 --learning-rate 0.4 --lambd 0.0051 --projector 8192-8192-8192 --scale-loss 0.024 --checkpoint_dir /scratch/ra3136/checkpoints/barlow '
+usage: main.py [-h] [--workers N] [--epochs N] [--batch-size N]
+               [--learning-rate LR] [--weight-decay W] [--lambd L]
+               [--projector MLP] [--scale-loss S] [--print-freq N]
+               [--checkpoint-dir DIR] [--resume_path RESUME_PATH]
+               DIR
+main.py: error: unrecognized arguments: --checkpoint_dir /scratch/ra3136/checkpoints/barlow

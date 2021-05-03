@@ -1,0 +1,36 @@
++ mkdir /tmp/ra3136
++ export SINGULARITY_CACHEDIR=/tmp/ra3136
++ SINGULARITY_CACHEDIR=/tmp/ra3136
++ cp -rp /scratch/DL21SP/student_dataset.sqsh /tmp
++ echo 'Dataset is copied to /tmp'
++ cd /home/ra3136/NYU_DL_comp/barlow/
+/opt/slurm/data/slurmd/job10076/slurm_script: line 22: cd: /home/ra3136/NYU_DL_comp/barlow/: No such file or directory
++ singularity exec --nv --bind /scratch --overlay /scratch/DL21SP/conda.sqsh:ro --overlay /tmp/student_dataset.sqsh:ro /share/apps/images/cuda11.1-cudnn8-devel-ubuntu18.04.sif /bin/bash -c '
+source /ext3/env.sh
+conda activate dev
+CUDA_VISIBLE_DEVICES=0,1 python3 evaluate.py  /dataset /scratch/ra3136/checkpoints/barlow/checkpoint.pth --weights finetune  --epochs 120 --lr-backbone 0.002 --lr-classifier 0.5 --weight-decay 0 --checkpoint-dir /scratch/ra3136/checkpoints/barlow/finetune --batch-size 12'
+Traceback (most recent call last):
+  File "evaluate.py", line 258, in <module>
+    main()
+  File "evaluate.py", line 63, in main
+    torch.multiprocessing.spawn(main_worker, (args,), args.ngpus_per_node)
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 230, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method='spawn')
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 188, in start_processes
+    while not context.join():
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 150, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 1 terminated with the following error:
+Traceback (most recent call last):
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/multiprocessing/spawn.py", line 59, in _wrap
+    fn(i, *args)
+  File "/home/ra3136/NYU_DL_comp/barlowtwins/evaluate.py", line 83, in main_worker
+    state_dict = torch.load(args.pretrained, map_location='cpu')
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/serialization.py", line 592, in load
+    return _load(opened_zipfile, map_location, pickle_module, **pickle_load_args)
+  File "/ext3/miniconda3/envs/dev/lib/python3.8/site-packages/torch/serialization.py", line 851, in _load
+    result = unpickler.load()
+AttributeError: Can't get attribute 'exclude_bias_and_norm' on <module '__mp_main__' from '/home/ra3136/NYU_DL_comp/barlowtwins/evaluate.py'>
+

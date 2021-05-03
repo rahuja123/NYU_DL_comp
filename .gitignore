@@ -11,3 +11,4 @@ student_dataset.tar.gz
 self-supervised-relational-reasoning/*.pth
 r50_1x_sk0/*
 *.pth*
+swav/apex

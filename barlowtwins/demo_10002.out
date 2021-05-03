@@ -1,0 +1,2 @@
+Dataset is copied to /tmp
+main.py /dataset/ --epochs 200 --batch-size 256 --learning-rate 0.4 --lambd 0.0051 --projector 8192-8192-8192 --scale-loss 0.024 --checkpoint-dir /scratch/ra3136/checkpoints/barlow

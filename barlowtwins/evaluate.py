@@ -54,15 +54,10 @@ def main():
     if args.train_percent in {1, 10}:
         args.train_files = urllib.request.urlopen(f'https://raw.githubusercontent.com/google-research/simclr/master/imagenet_subsets/{args.train_percent}percent.txt').readlines()
     args.ngpus_per_node = torch.cuda.device_count()
-    if 'SLURM_JOB_ID' in os.environ:
-        signal.signal(signal.SIGUSR1, handle_sigusr1)
-        signal.signal(signal.SIGTERM, handle_sigterm)
-    # single-node distributed training
     args.rank = 0
     args.dist_url = f'tcp://localhost:{random.randrange(49152, 65535)}'
     args.world_size = args.ngpus_per_node
     torch.multiprocessing.spawn(main_worker, (args,), args.ngpus_per_node)
-
 
 def main_worker(gpu, args):
     args.rank += gpu
@@ -132,12 +127,7 @@ def main_worker(gpu, args):
             transforms.ToTensor(),
             normalize,
         ]))
-    # val_dataset = datasets.ImageFolder(valdir, transforms.Compose([
-    #         transforms.Resize(256),
-    #         transforms.CenterCrop(224),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ]))
+
 
     if args.train_percent in {1, 10}:
         train_dataset.samples = []
