@@ -21,6 +21,20 @@ Training time is approximately 4-5 days.
 
 From the above file we get resnet50_finalnew.pth as the trained model checkpoint. After that we run finetuning supervised training on the command given below. 
 
+### Core Set Evaluation
+We got out best model trained from this command Variables in following order dataset path, pretrained unsupervised model, #samples desired, PCA compression. : 
+
+```
+python Core_set.py  /dataset ./classify_model/resnet50_unsupervised_200ep.pth  12800 40
+```
+SBATCH FILE version
+
+```
+sbatch  active_image_search.sbatch 
+```
+YOU HAVE TO EDIT THIS LINE WITH YOUR PRETRAINED MODEL PATH python  Core_set.py  /dataset $PRETRAINED MODEL PATH HERE!!!!!  12800 40". OTHERWISE YOU HAVE NO PRETRAINED MODEL PATH 
+Search Time is approximately 6-8 Hours 
+
 ### Evaluation: learning linear probe and also finetuning the remaining network.
 
 Train a linear probe on the representations learned by Barlow Twins. Finetune the weights of the resnet using our labeled dataset. 
