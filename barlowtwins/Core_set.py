@@ -21,9 +21,9 @@ parser.add_argument('data', type=Path, metavar='DIR',
                     help='path to dataset')
 parser.add_argument('pretrained', type=Path, metavar='FILE',
                     help='path to pretrained model')
-parser.add_argument('samples', type=Path, metavar='N',
+parser.add_argument('samples', type=int, metavar='N',
                     help='samples wanted')
-parser.add_argument('PCA', type=Path, metavar='N',
+parser.add_argument('PCA', type=int, metavar='N',
                     help='pca compression')
 args = parser.parse_args()
 train_transform = transforms.Compose([
