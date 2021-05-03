@@ -37,7 +37,7 @@ pip install Pillow
 sbatch  active_image_search.sbatch 
 ```
 YOU HAVE TO EDIT THIS LINE WITH YOUR PRETRAINED MODEL PATH python  Core_set.py  /dataset $PRETRAINED MODEL PATH HERE!!!!!  12800 40". OTHERWISE YOU HAVE NO PRETRAINED MODEL PATH 
-Search Time is approximately 6-8 Hours 
+Search Time is approximately 2-4 Hours 
 
 ### Evaluation: learning linear probe and also finetuning the remaining network.
 
