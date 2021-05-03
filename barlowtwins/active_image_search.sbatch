@@ -29,4 +29,4 @@ singularity exec --nv \
 /bin/bash -c "
 source /ext3/env.sh
 conda activate dev
-python  Core_set.py  /dataset ./classify_model/resnet50_unsupervised_200ep.pth  12800 40"
+python  Core_set.py  /dataset $SCRATCH/checkpoints/barlow/resnet50_finalnew.pth 12800 40"
