@@ -33,7 +33,7 @@ parser.add_argument('--train-percent', default=100, type=int,
                     help='size of traing set in percent')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
-parser.add_argument('--epochs', default=140, type=int, metavar='N',
+parser.add_argument('--epochs', default=120, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=256, type=int, metavar='N',
                     help='mini-batch size')
@@ -98,19 +98,17 @@ def main_worker(gpu, args):
         param_groups.append(dict(params=model.parameters(), lr=args.lr_backbone))
     optimizer = optim.SGD(param_groups, 0, momentum=0.9, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
+    ckpt = torch.load('checkpoint/lincls/checkpoint.pth',
+                      map_location='cpu')
 
     # automatically resume from checkpoint if it exists
-    if (args.checkpoint_dir / 'checkpoint.pth').is_file():
-        ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
-                          map_location='cpu')
-        start_epoch = ckpt['epoch']
-        best_acc = ckpt['best_acc']
-        classifier.load_state_dict(ckpt['classifier'])
-        optimizer.load_state_dict(ckpt['optimizer'])
-        scheduler.load_state_dict(ckpt['scheduler'])
-    else:
-        start_epoch = 0
-        best_acc = argparse.Namespace(top1=0, top5=0)
+
+
+        # start_epoch = ckpt['epoch']
+    best_acc = ckpt['best_acc']
+    classifier.load_state_dict(ckpt['classifier'])
+    start_epoch = 0
+    # best_acc = argparse.Namespace(top1=0, top5=0)
 
     # Data loading code
     traindir = args.data / 'train'
@@ -124,6 +122,13 @@ def main_worker(gpu, args):
             transforms.ToTensor(),
             normalize,
         ]))
+
+    # train_dataset = datasets.ImageFolder(traindir, transforms.Compose([
+    #         transforms.RandomResizedCrop(224),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ]))
 
 
     val_dataset= CustomDataset(args.data, 'val', transforms.Compose([
@@ -153,7 +158,6 @@ def main_worker(gpu, args):
     val_loader = torch.utils.data.DataLoader(val_dataset, **kwargs)
 
     start_time = time.time()
-    prev_acc=0
     for epoch in range(start_epoch, args.epochs):
         # train
         if args.weights == 'finetune':
@@ -206,21 +210,12 @@ def main_worker(gpu, args):
             for k, v in model.state_dict().items():
                 assert torch.equal(v.cpu(), state_dict[k]), k
 
-
         scheduler.step()
         if args.rank == 0:
             state = dict(
-                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
+                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(),
                 optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
-            torch.save(state, args.checkpoint_dir / 'checkpoint.pth')
-            if best_acc.top1>prev_acc:
-                prev_acc= best_acc.top1
-                state = dict(
-                    epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
-                    optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
-                torch.save(state, args.checkpoint_dir / 'best_checkpoint.pth')
-
-
+            torch.save(state, args.checkpoint_dir / 'checkpoint_finetune.pth')
 
 
 def handle_sigusr1(signum, frame):

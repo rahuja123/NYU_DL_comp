@@ -13,7 +13,7 @@ import signal
 import sys
 import time
 import urllib
-from data_helper import CustomDataset
+from data_helper import CustomDataset, UpdatedDataset
 
 from torch import nn, optim
 from torchvision import models, datasets, transforms
@@ -118,12 +118,32 @@ def main_worker(gpu, args):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
-    train_dataset= CustomDataset(args.data, 'train', transforms.Compose([
+    train_transform= transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
-        ]))
+        ])
+
+    trainset1 = UpdatedDataset(root=args.data, transform=train_transform)
+    trainset2 = CustomDataset(root=args.data, split="train", transform=train_transform)
+    train_dataset= torch.utils.data.ConcatDataset([trainset1, trainset2])
+    #
+    # dataset1= CustomDataset(args.data, 'train',)
+    #
+    # dataset2= UpdatedDataset(args.data, transforms.Compose([
+    #         transforms.RandomResizedCrop(224),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ]))
+    #
+    # train_dataset= CustomDataset(args.data, 'train', transforms.Compose([
+    #         transforms.RandomResizedCrop(224),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ]))
 
 
     val_dataset= CustomDataset(args.data, 'val', transforms.Compose([
@@ -206,7 +226,6 @@ def main_worker(gpu, args):
             for k, v in model.state_dict().items():
                 assert torch.equal(v.cpu(), state_dict[k]), k
 
-
         scheduler.step()
         if args.rank == 0:
             state = dict(
@@ -219,7 +238,6 @@ def main_worker(gpu, args):
                     epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
                     optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
                 torch.save(state, args.checkpoint_dir / 'best_checkpoint.pth')
-
 
 
 

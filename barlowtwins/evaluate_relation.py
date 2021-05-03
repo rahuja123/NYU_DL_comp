@@ -33,7 +33,7 @@ parser.add_argument('--train-percent', default=100, type=int,
                     help='size of traing set in percent')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
-parser.add_argument('--epochs', default=140, type=int, metavar='N',
+parser.add_argument('--epochs', default=120, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=256, type=int, metavar='N',
                     help='mini-batch size')
@@ -82,7 +82,7 @@ def main_worker(gpu, args):
     model = models.resnet50().cuda(gpu)
     model.fc = nn.Identity()
     state_dict = torch.load(args.pretrained, map_location='cpu')
-    model.load_state_dict(state_dict)
+    model.load_state_dict(state_dict["backbone"])
     if args.weights == 'freeze':
         model.requires_grad_(False)
 
@@ -115,20 +115,29 @@ def main_worker(gpu, args):
     # Data loading code
     traindir = args.data / 'train'
     valdir = args.data / 'val'
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     # std=[0.229, 0.224, 0.225])
+
+    normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 
     train_dataset= CustomDataset(args.data, 'train', transforms.Compose([
-            transforms.RandomResizedCrop(224),
+            transforms.RandomResizedCrop(96),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
         ]))
 
+    # train_dataset = datasets.ImageFolder(traindir, transforms.Compose([
+    #         transforms.RandomResizedCrop(224),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ]))
+
 
     val_dataset= CustomDataset(args.data, 'val', transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            transforms.Resize(128),
+            transforms.CenterCrop(96),
             transforms.ToTensor(),
             normalize,
         ]))
@@ -153,7 +162,6 @@ def main_worker(gpu, args):
     val_loader = torch.utils.data.DataLoader(val_dataset, **kwargs)
 
     start_time = time.time()
-    prev_acc=0
     for epoch in range(start_epoch, args.epochs):
         # train
         if args.weights == 'finetune':
@@ -204,23 +212,15 @@ def main_worker(gpu, args):
         if args.weights == 'freeze':
             state_dict = torch.load(args.pretrained, map_location='cpu')
             for k, v in model.state_dict().items():
-                assert torch.equal(v.cpu(), state_dict[k]), k
-
+                # print(k,v)
+                assert torch.equal(v.cpu(), state_dict['backbone'][k]), k
 
         scheduler.step()
         if args.rank == 0:
             state = dict(
-                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
+                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(),
                 optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
             torch.save(state, args.checkpoint_dir / 'checkpoint.pth')
-            if best_acc.top1>prev_acc:
-                prev_acc= best_acc.top1
-                state = dict(
-                    epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
-                    optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
-                torch.save(state, args.checkpoint_dir / 'best_checkpoint.pth')
-
-
 
 
 def handle_sigusr1(signum, frame):

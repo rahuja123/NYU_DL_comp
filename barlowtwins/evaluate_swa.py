@@ -96,8 +96,10 @@ def main_worker(gpu, args):
     param_groups = [dict(params=classifier.parameters(), lr=args.lr_classifier)]
     if args.weights == 'finetune':
         param_groups.append(dict(params=model.parameters(), lr=args.lr_backbone))
-    optimizer = optim.SGD(param_groups, 0, momentum=0.9, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
+    base_opt = optim.SGD(param_groups, 0, momentum=0.9, weight_decay=args.weight_decay)
+    from torchcontrib.optim import SWA
+    optimizer = SWA(base_opt, swa_start=0, swa_freq=5, swa_lr=0.001)
+    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
 
     # automatically resume from checkpoint if it exists
     if (args.checkpoint_dir / 'checkpoint.pth').is_file():
@@ -106,8 +108,8 @@ def main_worker(gpu, args):
         start_epoch = ckpt['epoch']
         best_acc = ckpt['best_acc']
         classifier.load_state_dict(ckpt['classifier'])
-        optimizer.load_state_dict(ckpt['optimizer'])
-        scheduler.load_state_dict(ckpt['scheduler'])
+        # optimizer.load_state_dict(ckpt['optimizer'])
+        # scheduler.load_state_dict(ckpt['scheduler'])
     else:
         start_epoch = 0
         best_acc = argparse.Namespace(top1=0, top5=0)
@@ -153,7 +155,6 @@ def main_worker(gpu, args):
     val_loader = torch.utils.data.DataLoader(val_dataset, **kwargs)
 
     start_time = time.time()
-    prev_acc=0
     for epoch in range(start_epoch, args.epochs):
         # train
         if args.weights == 'finetune':
@@ -184,6 +185,8 @@ def main_worker(gpu, args):
 
         # evaluate
         model.eval()
+        optimizer.swap_swa_sgd()
+        optimizer.bn_update(train_loader, model, device='cuda')
         if args.rank == 0:
             top1 = AverageMeter('Acc@1')
             top5 = AverageMeter('Acc@5')
@@ -206,21 +209,13 @@ def main_worker(gpu, args):
             for k, v in model.state_dict().items():
                 assert torch.equal(v.cpu(), state_dict[k]), k
 
-
-        scheduler.step()
+        # scheduler.step()
         if args.rank == 0:
             state = dict(
                 epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
                 optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
             torch.save(state, args.checkpoint_dir / 'checkpoint.pth')
-            if best_acc.top1>prev_acc:
-                prev_acc= best_acc.top1
-                state = dict(
-                    epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
-                    optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
-                torch.save(state, args.checkpoint_dir / 'best_checkpoint.pth')
-
-
+        optimizer.swap_swa_sgd()
 
 
 def handle_sigusr1(signum, frame):

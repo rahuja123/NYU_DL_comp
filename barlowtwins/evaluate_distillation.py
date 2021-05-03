@@ -33,7 +33,7 @@ parser.add_argument('--train-percent', default=100, type=int,
                     help='size of traing set in percent')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
-parser.add_argument('--epochs', default=140, type=int, metavar='N',
+parser.add_argument('--epochs', default=120, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=256, type=int, metavar='N',
                     help='mini-batch size')
@@ -79,17 +79,27 @@ def main_worker(gpu, args):
     torch.cuda.set_device(gpu)
     torch.backends.cudnn.benchmark = True
 
-    model = models.resnet50().cuda(gpu)
-    model.fc = nn.Identity()
-    state_dict = torch.load(args.pretrained, map_location='cpu')
-    model.load_state_dict(state_dict)
-    if args.weights == 'freeze':
-        model.requires_grad_(False)
+    if args.arch == 'resnet50':
+        import torchvision.models as premodels
+        model = premodels.resnet50(num_classes=800)
+        state_dict = torch.load('/home/rahulahuja/nyu/dl/NYU_DL_comp/barlowtwins/checkpoint/resnet50.pth', map_location='cpu')
+        model.load_state_dict(state_dict, strict=False)
 
-    classifier = nn.Linear(2048, 800).cuda(gpu)
-    classifier.weight.data.normal_(mean=0.0, std=0.01)
-    classifier.bias.data.zero_()
-    classifier = torch.nn.parallel.DistributedDataParallel(classifier, device_ids=[gpu])
+        classifier = torch.nn.Linear(2048, 800)
+        classifier.weight.data.normal_(mean=0.0, std=0.01)
+        classifier.bias.data.zero_()
+
+        ckpt= torch.load('/home/rahulahuja/nyu/dl/NYU_DL_comp/barlowtwins/checkpoint/lincls/checkpoint.pth', map_location='cpu')
+        state_dict= ckpt['classifier']
+        for k in list(state_dict.keys()):
+          if k.startswith('module.'):
+              state_dict[k[len("module."):]] = state_dict[k]
+          del state_dict[k]
+
+        classifier.load_state_dict(state_dict)
+        model.fc= classifier
+
+    teacher_model= model.resnet50().cuda(gpu)
 
     criterion = nn.CrossEntropyLoss().cuda(gpu)
 
@@ -113,12 +123,17 @@ def main_worker(gpu, args):
         best_acc = argparse.Namespace(top1=0, top5=0)
 
     # Data loading code
-    traindir = args.data / 'train'
-    valdir = args.data / 'val'
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
-    train_dataset= CustomDataset(args.data, 'train', transforms.Compose([
+    eval_dataset= CustomDataset(args.data, 'train', transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            normalize,
+        ]))
+
+    unsupervised_dataset= CustomDataset(args.data, 'train', transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -126,7 +141,7 @@ def main_worker(gpu, args):
         ]))
 
 
-    val_dataset= CustomDataset(args.data, 'val', transforms.Compose([
+    test_dataset= CustomDataset(args.data, 'val', transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
@@ -153,7 +168,6 @@ def main_worker(gpu, args):
     val_loader = torch.utils.data.DataLoader(val_dataset, **kwargs)
 
     start_time = time.time()
-    prev_acc=0
     for epoch in range(start_epoch, args.epochs):
         # train
         if args.weights == 'finetune':
@@ -206,21 +220,12 @@ def main_worker(gpu, args):
             for k, v in model.state_dict().items():
                 assert torch.equal(v.cpu(), state_dict[k]), k
 
-
         scheduler.step()
         if args.rank == 0:
             state = dict(
-                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
+                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(),
                 optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
             torch.save(state, args.checkpoint_dir / 'checkpoint.pth')
-            if best_acc.top1>prev_acc:
-                prev_acc= best_acc.top1
-                state = dict(
-                    epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
-                    optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
-                torch.save(state, args.checkpoint_dir / 'best_checkpoint.pth')
-
-
 
 
 def handle_sigusr1(signum, frame):

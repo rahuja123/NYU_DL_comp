@@ -2,7 +2,7 @@ import torch
 import torchvision
 import torchvision.models as models
 from torch import nn
-from resnet_large1 import ResNet, BasicBlock
+from resnet_large1 import ResNet, BasicBlock, Bottleneck
 from data_helper import CustomDataset
 from torchvision import transforms
 
@@ -13,20 +13,20 @@ from torchvision import transforms
 # print(resnet34)
 
 
-path= 'checkpoint/relationnet/nyu/relationnet_nyu_resnet34_seed_1_epoch_100_finetune_True_linear_evaluation_2layer.tar'
+path= '/home/rahulahuja/nyu/dl/NYU_DL_comp/self-supervised-relational-reasoning/checkpoint/relationnet/nyu/resnet50/relationnet_nyu_resnet50_seed_2_epoch_19.tar'
 checkpoint= torch.load(path)
 print(checkpoint.keys())
 
-feature_extractor = ResNet(BasicBlock, layers=[3, 4, 6, 3],zero_init_residual=False,
+feature_extractor = ResNet(Bottleneck, layers=[3, 4, 6, 3],zero_init_residual=False,
              groups=1, width_per_group=64, replace_stride_with_dilation=None,
              norm_layer=None)
 
 print(feature_extractor)
 feature_extractor.load_state_dict(checkpoint["backbone"])
-model= models.resnet34(num_classes=800)
+model= models.resnet50(num_classes=800)
 model.load_state_dict(checkpoint["backbone"],strict=False)
 model.fc.load_state_dict(checkpoint["classifier"])
-torch.save(model.state_dict(), 'model1.pth')
+torch.save(model.state_dict(), 'resnet50_relation_epoch19.pth')
 print(model)
 
 # exit()

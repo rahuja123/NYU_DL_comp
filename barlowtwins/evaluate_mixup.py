@@ -19,6 +19,8 @@ from torch import nn, optim
 from torchvision import models, datasets, transforms
 import torch
 import torchvision
+from torch.autograd import Variable
+import numpy as np
 
 parser = argparse.ArgumentParser(description='Evaluate resnet50 features on ImageNet')
 parser.add_argument('data', type=Path, metavar='DIR',
@@ -33,7 +35,7 @@ parser.add_argument('--train-percent', default=100, type=int,
                     help='size of traing set in percent')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
-parser.add_argument('--epochs', default=140, type=int, metavar='N',
+parser.add_argument('--epochs', default=120, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=256, type=int, metavar='N',
                     help='mini-batch size')
@@ -46,6 +48,8 @@ parser.add_argument('--weight-decay', default=1e-6, type=float, metavar='W',
 parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
 parser.add_argument('--checkpoint-dir', default='./checkpoint/lincls/', type=Path,
+                    metavar='DIR', help='path to checkpoint directory')
+parser.add_argument('--alpha', default=0.2, type=float,
                     metavar='DIR', help='path to checkpoint directory')
 
 
@@ -62,6 +66,26 @@ def main():
     args.dist_url = f'tcp://localhost:{random.randrange(49152, 65535)}'
     args.world_size = args.ngpus_per_node
     torch.multiprocessing.spawn(main_worker, (args,), args.ngpus_per_node)
+
+def mixup_data(x, y, alpha=1.0, use_cuda=True):
+    '''Returns mixed inputs, pairs of targets, and lambda'''
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+
+    batch_size = x.size()[0]
+
+    index = torch.randperm(batch_size).cuda()
+
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 
 def main_worker(gpu, args):
@@ -99,18 +123,25 @@ def main_worker(gpu, args):
     optimizer = optim.SGD(param_groups, 0, momentum=0.9, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
 
+    ckpt = torch.load('checkpoint/lincls/checkpoint.pth',
+                      map_location='cpu')
+
+    best_acc = ckpt['best_acc']
+    classifier.load_state_dict(ckpt['classifier'])
+    start_epoch = 0
+
     # automatically resume from checkpoint if it exists
-    if (args.checkpoint_dir / 'checkpoint.pth').is_file():
-        ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
-                          map_location='cpu')
-        start_epoch = ckpt['epoch']
-        best_acc = ckpt['best_acc']
-        classifier.load_state_dict(ckpt['classifier'])
-        optimizer.load_state_dict(ckpt['optimizer'])
-        scheduler.load_state_dict(ckpt['scheduler'])
-    else:
-        start_epoch = 0
-        best_acc = argparse.Namespace(top1=0, top5=0)
+    # if (args.checkpoint_dir / 'checkpoint.pth').is_file():
+    #     ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
+    #                       map_location='cpu')
+    #     start_epoch = ckpt['epoch']
+    #     best_acc = ckpt['best_acc']
+    #     classifier.load_state_dict(ckpt['classifier'])
+    #     optimizer.load_state_dict(ckpt['optimizer'])
+    #     scheduler.load_state_dict(ckpt['scheduler'])
+    # else:
+    # start_epoch = 0
+    # best_acc = argparse.Namespace(top1=0, top5=0)
 
     # Data loading code
     traindir = args.data / 'train'
@@ -124,6 +155,13 @@ def main_worker(gpu, args):
             transforms.ToTensor(),
             normalize,
         ]))
+
+    # train_dataset = datasets.ImageFolder(traindir, transforms.Compose([
+    #         transforms.RandomResizedCrop(224),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ]))
 
 
     val_dataset= CustomDataset(args.data, 'val', transforms.Compose([
@@ -153,7 +191,6 @@ def main_worker(gpu, args):
     val_loader = torch.utils.data.DataLoader(val_dataset, **kwargs)
 
     start_time = time.time()
-    prev_acc=0
     for epoch in range(start_epoch, args.epochs):
         # train
         if args.weights == 'finetune':
@@ -164,9 +201,17 @@ def main_worker(gpu, args):
             assert False
         train_sampler.set_epoch(epoch)
         for step, (images, target) in enumerate(train_loader, start=epoch * len(train_loader)):
+            inputs, targets_a, targets_b, lam = mixup_data(images, target,
+                                                       args.alpha)
+
+            images, targets_a, targets_b = map(Variable, (inputs,targets_a, targets_b))
+            # outputs = net(inputs)
+
+            # train_loss += loss.data[0]
             features = model(images.cuda(gpu, non_blocking=True))
             output = classifier(features)
-            loss = criterion(output, target.cuda(gpu, non_blocking=True))
+            # loss = criterion(output, target.cuda(gpu, non_blocking=True))
+            loss = mixup_criterion(criterion, output, targets_a.cuda(gpu, non_blocking=True), targets_b.cuda(gpu, non_blocking=True), lam)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -206,21 +251,12 @@ def main_worker(gpu, args):
             for k, v in model.state_dict().items():
                 assert torch.equal(v.cpu(), state_dict[k]), k
 
-
         scheduler.step()
         if args.rank == 0:
             state = dict(
-                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
+                epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model=model.state_dict(),
                 optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
             torch.save(state, args.checkpoint_dir / 'checkpoint.pth')
-            if best_acc.top1>prev_acc:
-                prev_acc= best_acc.top1
-                state = dict(
-                    epoch=epoch + 1, best_acc=best_acc, classifier=classifier.state_dict(), model= model.state_dict(),
-                    optimizer=optimizer.state_dict(), scheduler=scheduler.state_dict())
-                torch.save(state, args.checkpoint_dir / 'best_checkpoint.pth')
-
-
 
 
 def handle_sigusr1(signum, frame):

@@ -62,7 +62,7 @@ class UpdatedDataset(torch.utils.data.Dataset):
         label_path = os.path.join(root, "label_18.pt")
         idx_path = os.path.join(root, "request_18.csv")
         self.num_images = 12800
-        self.ids = np.loadtxt(idx_path, delimiter=",")
+        self.ids = np.loadtxt(idx_path, delimiter=",")  
         self.ids = self.ids.astype(int)
         self.labels = torch.load(label_path)
 
