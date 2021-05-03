@@ -54,9 +54,7 @@ def main():
     if args.train_percent in {1, 10}:
         args.train_files = urllib.request.urlopen(f'https://raw.githubusercontent.com/google-research/simclr/master/imagenet_subsets/{args.train_percent}percent.txt').readlines()
     args.ngpus_per_node = torch.cuda.device_count()
-    if 'SLURM_JOB_ID' in os.environ:
-        signal.signal(signal.SIGUSR1, handle_sigusr1)
-        signal.signal(signal.SIGTERM, handle_sigterm)
+
     # single-node distributed training
     args.rank = 0
     args.dist_url = f'tcp://localhost:{random.randrange(49152, 65535)}'
@@ -128,22 +126,6 @@ def main_worker(gpu, args):
     trainset1 = UpdatedDataset(root=args.data, transform=train_transform)
     trainset2 = CustomDataset(root=args.data, split="train", transform=train_transform)
     train_dataset= torch.utils.data.ConcatDataset([trainset1, trainset2])
-    #
-    # dataset1= CustomDataset(args.data, 'train',)
-    #
-    # dataset2= UpdatedDataset(args.data, transforms.Compose([
-    #         transforms.RandomResizedCrop(224),
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ]))
-    #
-    # train_dataset= CustomDataset(args.data, 'train', transforms.Compose([
-    #         transforms.RandomResizedCrop(224),
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ]))
 
 
     val_dataset= CustomDataset(args.data, 'val', transforms.Compose([
@@ -152,12 +134,7 @@ def main_worker(gpu, args):
             transforms.ToTensor(),
             normalize,
         ]))
-    # val_dataset = datasets.ImageFolder(valdir, transforms.Compose([
-    #         transforms.Resize(256),
-    #         transforms.CenterCrop(224),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ]))
+
 
     if args.train_percent in {1, 10}:
         train_dataset.samples = []
