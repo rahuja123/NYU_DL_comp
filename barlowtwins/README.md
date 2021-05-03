@@ -25,11 +25,13 @@ From the above file we get resnet50_finalnew.pth as the trained model checkpoint
 We got out best model trained from this command Variables in following order dataset path, pretrained unsupervised model, #samples desired, PCA compression. : 
 
 ```
+pip install sklearn
 python Core_set.py  /dataset ./classify_model/resnet50_unsupervised_200ep.pth  12800 40
 ```
 SBATCH FILE version
 
 ```
+pip install sklearn
 sbatch  active_image_search.sbatch 
 ```
 YOU HAVE TO EDIT THIS LINE WITH YOUR PRETRAINED MODEL PATH python  Core_set.py  /dataset $PRETRAINED MODEL PATH HERE!!!!!  12800 40". OTHERWISE YOU HAVE NO PRETRAINED MODEL PATH 
