@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms, models
 from PIL import Image # PIL is a library to process images
-from matplotlib import pyplot as plt
 from data_helper import CustomDataset
 from sklearn.decomposition import PCA
 
