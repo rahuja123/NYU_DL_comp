@@ -53,9 +53,9 @@ def main():
     if args.train_percent in {1, 10}:
         args.train_files = urllib.request.urlopen(f'https://raw.githubusercontent.com/google-research/simclr/master/imagenet_subsets/{args.train_percent}percent.txt').readlines()
     args.ngpus_per_node = torch.cuda.device_count()
-    if 'SLURM_JOB_ID' in os.environ:
-        signal.signal(signal.SIGUSR1, handle_sigusr1)
-        signal.signal(signal.SIGTERM, handle_sigterm)
+    #if 'SLURM_JOB_ID' in os.environ:
+    #    signal.signal(signal.SIGUSR1, handle_sigusr1)
+    #    signal.signal(signal.SIGTERM, handle_sigterm)
     # single-node distributed training
     args.rank = 0
     args.dist_url = f'tcp://localhost:{random.randrange(49152, 65535)}'
@@ -81,7 +81,7 @@ def main_worker(gpu, args):
     model = models.resnet50().cuda(gpu)
     model.fc = nn.Identity()
     state_dict = torch.load(args.pretrained, map_location='cpu')
-    model.load_state_dict(state_dict)
+    model.load_state_dict(state_dict['model'])
     if args.weights == 'freeze':
         model.requires_grad_(False)
 
