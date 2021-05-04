@@ -66,7 +66,7 @@ To train on the extra labels dataset, just use the command given below:
 ```
 python3 evaluate_nyu2.py  /dataset $SCRATCH/checkpoints/barlow/resnet50_finalnew.pth --weights finetune  --epochs 120 --lr-backbone 0.002 --lr-classifier 0.5 --weight-decay 0 --checkpoint-dir $SCRATCH/checkpoints/barlow/finetune_nyu2/
 ```
-After this you will get final model in finetune_nyu2/checkpoint.pth
+After this you will get final model in checkpoint_path/finetune_nyu2/checkpoint.pth
 
 ### SBATCH files
 
