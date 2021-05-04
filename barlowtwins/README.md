@@ -53,6 +53,12 @@ Train a linear probe on the representations learned by Barlow Twins. Finetune th
 ```
 python3 evaluate.py  /dataset $SCRATCH/checkpoints/barlow/resnet50_finalnew.pth --weights finetune  --epochs 120 --lr-backbone 0.002 --lr-classifier 0.5 --weight-decay 0 --checkpoint-dir $SCRATCH/checkpoints/barlow/finetune 
 ```
+or run the sbatch file on gcp
+
+```
+sbatch lincls_2gpu.sbatch
+```
+
 After this you will get final model in finetune/checkpoint.pth
 
 
