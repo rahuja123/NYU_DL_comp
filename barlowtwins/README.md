@@ -16,6 +16,12 @@ If you are running on GCP Tesla T4(Greene) use this command below to replicate t
 ```
 python3  main.py --data /dataset --epochs 200 --batch-size 128 --learning-rate 0.7 --lambd 0.0051 --projector 8192-8192-8192 --scale-loss 0.024 --checkpoint-dir $SCRATCH/checkpoints/barlow
 ```
+or can run this sbatch on gcp
+
+```
+sbatch demo_2gpu.sbatch
+```
+
 
 Training time is approximately 5+ days. 
 
