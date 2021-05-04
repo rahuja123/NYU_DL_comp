@@ -5,7 +5,7 @@ We followed the barlow twins implementation from FAIR and customised it for our 
 
 ### Barlow Twins  Unsupervised Training
 
-We got out best model trained from this command: 
+We got our best model trained from this command:
 
 ```
 python3 main.py  --data /dataset --epochs 200 --batch-size 512 --learning-rate 0.3 --lambd 0.0051 --projector 8192-8192-8192 --scale-loss 0.024 checkpoint-dir $SCRATCH/checkpoints/barlow
@@ -25,10 +25,12 @@ sbatch demo_2gpu.sbatch
 
 Training time is approximately 5+ days. 
 
-From the above file we get resnet50_finalnew.pth as the trained model checkpoint. After that we run finetuning supervised training on the command given below. 
+From the above file we get resnet50_finalnew.pth as the trained model checkpoint. After that we run active learning using Core Set and later finetuning supervised training. 
 
 ### Core Set Evaluation
-We got out best model trained from this command Variables in following order dataset path, pretrained unsupervised model, #samples desired, PCA compression. : 
+We run this command below for Core set. The arguments that are required for the file are as follows: dataset path, pretrained unsupervised model checkpoint, #samples desired, PCA compression. 
+
+We have set #samples desired= 12800, PCA=40 
 
 ```
 pip install sklearn
