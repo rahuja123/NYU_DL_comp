@@ -48,6 +48,8 @@ Search Time is approximately 2-4 Hours. This code will create the file 'request_
 
 
 ### Evaluation: learning linear probe and also finetuning the remaining network.
+!!!!! Training on the EXTRA Dataset IMPORTANT
+To train on the additional labels. Move both label_18.pt and request_18.csv from this directory to the same directory as the dataset. In the exact same folder as train_label_tensor.pt and val_label_tensor.pt
 
 Train a linear probe on the representations learned by Barlow Twins. Finetune the weights of the resnet using our labeled dataset. 
 ```
