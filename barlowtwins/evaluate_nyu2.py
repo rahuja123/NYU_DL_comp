@@ -134,7 +134,11 @@ def main_worker(gpu, args):
             transforms.ToTensor(),
             normalize,
         ]))
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> 5c4e51e8aa862d153a0a30f8aa11354822f14856
 
     if args.train_percent in {1, 10}:
         train_dataset.samples = []

@@ -1,0 +1,2 @@
+Dataset is copied to /tmp
+evaluate.py /dataset /scratch/ra3136/checkpoints/barlow/resnet50.pth --weights finetune --epochs 120 --lr-backbone 0.002 --lr-classifier 0.5 --weight-decay 0 --checkpoint-dir /scratch/ra3136/checkpoints/barlow/finetune --batch-size 12

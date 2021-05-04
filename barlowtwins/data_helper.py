@@ -41,6 +41,7 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         with open(os.path.join(self.image_dir, f"{idx}.png"), 'rb') as f:
             img = Image.open(f).convert('RGB')
+            
             if self.split == 'unlabeled':
                 label = self.basicTransform(img)
             else:
