@@ -77,4 +77,8 @@ dis = dis.sum(axis=1)
 
 q_idxs = np.array([np.arange(embedding.shape[0])[cluster_idxs==i][dis[cluster_idxs==i].argmin()] for i in range(samples_desired)])
 
-np.save('core_set_samples', q_idxs, allow_pickle=True, fix_imports=True)
+import csv
+with open('request_18.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    for i in range(len(q_idxs)):
+        writer.writerow([str(q_idxs[i])+'.png,'])
