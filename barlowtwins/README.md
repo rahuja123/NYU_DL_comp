@@ -48,8 +48,7 @@ Search Time is approximately 2-4 Hours. This code will create the file 'request_
 
 
 ### Evaluation: learning linear probe and also finetuning the remaining network.
-!!!!! Training on the EXTRA Dataset IMPORTANT
-To train on the additional labels. Move both label_18.pt and request_18.csv from this directory to the same directory as the dataset. In the exact same folder as train_label_tensor.pt and val_label_tensor.pt
+
 
 Train a linear probe on the representations learned by Barlow Twins. Finetune the weights of the resnet using our labeled dataset. 
 ```
@@ -61,10 +60,12 @@ or run the sbatch file on gcp
 sbatch lincls_2gpu.sbatch
 ```
 
-After this you will get final model in finetune/checkpoint.pth
+After this you will get final model in checkpoint_path/finetune/checkpoint.pth
 
+**Training on the EXTRA Dataset IMPORTANT**
+- To train on the additional labels. Move both label_18.pt and request_18.csv from this directory to the same directory as the dataset. In the exact same folder as train_label_tensor.pt and val_label_tensor.pt
 
-To train on the extra labels dataset, just use the command given below:
+To train supervised on the extra labels dataset, just use the command given below:
 ```
 python3 evaluate_nyu2.py  /dataset $SCRATCH/checkpoints/barlow/resnet50_finalnew.pth --weights finetune  --epochs 120 --lr-backbone 0.002 --lr-classifier 0.5 --weight-decay 0 --checkpoint-dir $SCRATCH/checkpoints/barlow/finetune_nyu2/
 ```
