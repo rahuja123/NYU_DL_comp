@@ -35,7 +35,7 @@
 --------------------------------------------------------------
 # Implementation
   
-##Barlow Twins: Self-Supervised Learning via Redundancy Reduction
+## Barlow Twins: Self-Supervised Learning via Redundancy Reduction
 ---------------------------------------------------------------
 We followed the barlow twins implementation from FAIR and customised it for our dataset.
 
