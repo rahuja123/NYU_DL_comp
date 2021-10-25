@@ -30,9 +30,12 @@
   
 ### Labeling:
   We need to select 12,800 images from the 512,000 unlabeled images and send the indices of those images. 
- 
   
-Barlow Twins: Self-Supervised Learning via Redundancy Reduction
+  
+--------------------------------------------------------------
+# Implementation
+  
+##Barlow Twins: Self-Supervised Learning via Redundancy Reduction
 ---------------------------------------------------------------
 We followed the barlow twins implementation from FAIR and customised it for our dataset.
 
